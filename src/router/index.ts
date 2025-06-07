@@ -1,35 +1,119 @@
-// src/router/index.ts - Enhanced router configuration
+// STEP 2: Create a minimal router setup - replace your router/index.ts
+
 import { createRouter, createWebHistory } from 'vue-router';
-import LandingView from '../views/LandingView.vue';
-import HomeView from '../views/HomeView.vue';
-import JourneyView from '../views/JourneyView.vue';
+
+// Simple test components - create these as separate .vue files OR define inline
+const LandingViewTest = {
+  name: 'LandingViewTest',
+  template: `
+    <div class="test-component landing">
+      <h1>🏠 Landing Page Test</h1>
+      <p>Current time: {{ new Date().toLocaleTimeString() }}</p>
+      <button @click="goToJourney" class="nav-button">Go to Journey →</button>
+      <div class="component-info">
+        <strong>Component:</strong> LandingViewTest<br>
+        <strong>Route:</strong> {{ $route.fullPath }}<br>
+        <strong>Mounted:</strong> {{ mounted }}
+      </div>
+    </div>
+  `,
+  setup() {
+    const router = useRouter();
+    const mounted = ref(false);
+    
+    const goToJourney = () => {
+      console.log('🚀 Button clicked: navigating to journey');
+      router.push('/journey').catch(err => console.error('Navigation error:', err));
+    };
+    
+    onMounted(() => {
+      mounted.value = true;
+      console.log('✅ LandingViewTest mounted');
+    });
+    
+    return { goToJourney, mounted };
+  }
+};
+
+const JourneyViewTest = {
+  name: 'JourneyViewTest',
+  template: `
+    <div class="test-component journey">
+      <h1>🚀 Journey Page Test</h1>
+      <p>Current time: {{ new Date().toLocaleTimeString() }}</p>
+      <button @click="goToLanding" class="nav-button">← Back to Landing</button>
+      <div class="component-info">
+        <strong>Component:</strong> JourneyViewTest<br>
+        <strong>Route:</strong> {{ $route.fullPath }}<br>
+        <strong>Mounted:</strong> {{ mounted }}
+      </div>
+    </div>
+  `,
+  setup() {
+    const router = useRouter();
+    const mounted = ref(false);
+    
+    const goToLanding = () => {
+      console.log('🏠 Button clicked: navigating to landing');
+      router.push('/').catch(err => console.error('Navigation error:', err));
+    };
+    
+    onMounted(() => {
+      mounted.value = true;
+      console.log('✅ JourneyViewTest mounted');
+      // NOTE: NO router.go(0) here!
+    });
+    
+    return { goToLanding, mounted };
+  }
+};
+
+const HomeViewTest = {
+  name: 'HomeViewTest',
+  template: `
+    <div class="test-component home">
+      <h1>📱 Home Page Test</h1>
+      <p>Current time: {{ new Date().toLocaleTimeString() }}</p>
+      <div class="component-info">
+        <strong>Component:</strong> HomeViewTest<br>
+        <strong>Route:</strong> {{ $route.fullPath }}<br>
+        <strong>Mounted:</strong> {{ mounted }}
+      </div>
+    </div>
+  `,
+  setup() {
+    const mounted = ref(false);
+    
+    onMounted(() => {
+      mounted.value = true;
+      console.log('✅ HomeViewTest mounted');
+    });
+    
+    return { mounted };
+  }
+};
+
+// Import necessary Vue functions
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import LandingView from '@/views/LandingView.vue';
+import JourneyView from '@/views/JourneyView.vue';
 
 const routes = [
   {
     path: '/',
     name: 'landing',
-    component: LandingView,
-    meta: {
-      title: 'Vivekam\'s SmartVest'
-    }
-  },
-  {
-    path: '/home',
-    name: 'home',
-    component: HomeView,
-    meta: {
-      title: 'Home - SmartVest'
-    }
-  },
+    component: LandingView },
   {
     path: '/journey',
     name: 'journey',
-    component: JourneyView,
-    meta: {
-      title: 'Investment Journey - SmartVest'
-    }
+    component: JourneyView
+    },
+  {
+    path: '/home',
+    name: 'home',
+    component: HomeViewTest
   },
-  // Catch-all redirect to landing
   {
     path: '/:pathMatch(.*)*',
     redirect: '/'
@@ -38,40 +122,21 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
-  // Enhanced scroll behavior
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition;
-    } else {
-      return { top: 0, behavior: 'smooth' };
-    }
-  }
+  routes
 });
 
-// Global navigation guards for debugging
+// Debug logging
 router.beforeEach((to, from, next) => {
-  console.log(`🔄 Navigating from ${from.path} to ${to.path}`);
-  
-  // Update document title
-  if (to.meta?.title) {
-    document.title = to.meta.title as string;
-  }
-  
+  console.log(`🔄 Router beforeEach: ${from.fullPath} → ${to.fullPath}`);
   next();
 });
 
 router.afterEach((to, from, failure) => {
   if (failure) {
-    console.error('❌ Navigation failed:', failure);
+    console.error('❌ Router afterEach - Navigation failed:', failure);
   } else {
-    console.log(`✅ Navigation complete: ${from.path} → ${to.path}`);
+    console.log(`✅ Router afterEach: ${from.fullPath} → ${to.fullPath}`);
   }
-});
-
-// Handle navigation errors globally
-router.onError((error) => {
-  console.error('🚨 Router error:', error);
 });
 
 export default router;
