@@ -4,12 +4,11 @@
     <div class="splash-background">
       <!-- Enhanced floating elements with investment icons -->
       <div class="floating-icons">
-        <div v-for="n in 15" :key="n" class="floating-icon" :style="getFloatingStyle(n)">
+        <div v-for="n in 10" :key="n" class="floating-icon" :style="getFloatingStyle(n)">
           {{ getInvestmentIcon(n) }}
         </div>
       </div>
       <div class="splash-grid-pattern"></div>
-      <div class="splash-wave-animation"></div>
     </div>
     <div class="splash-content">
       <div class="splash-logo-container">
@@ -17,7 +16,6 @@
           <div class="logo-rings">
             <div class="ring ring-1"></div>
             <div class="ring ring-2"></div>
-            <div class="ring ring-3"></div>
           </div>
           <div class="logo-center">
             <div class="logo-inner">💎</div>
@@ -43,20 +41,19 @@
     </div>
   </div>
 
-  <!-- Main Landing Page - Journey Style -->
+  <!-- Main Landing Page - Optimized for No Scroll -->
   <div v-else class="landing-page">
-    <!-- Enhanced Background matching Journey View -->
+    <!-- Enhanced Background -->
     <div class="page-background">
       <div class="floating-shapes">
-        <div v-for="n in 20" :key="n" class="shape" :style="getShapeStyle(n)"></div>
+        <div v-for="n in 15" :key="n" class="shape" :style="getShapeStyle(n)"></div>
       </div>
       <div class="grid-pattern"></div>
-      <div class="wave-animation"></div>
     </div>
 
     <div class="landing-container">
       
-      <!-- Enhanced Header Section -->
+      <!-- Compact Header Section -->
       <div class="header-section">
         <div class="logo-container">
           <div class="main-logo">
@@ -84,7 +81,7 @@
         </div>
       </div>
       
-      <!-- Enhanced Value Proposition -->
+      <!-- Compact Value Proposition -->
       <div class="value-proposition">
         <div class="value-content">
           <div class="tagline-main">
@@ -94,95 +91,77 @@
             <div class="value-point">
               <div class="point-icon-container">
                 <span class="point-icon">📊</span>
-                <div class="icon-glow"></div>
               </div>
               <div class="point-content">
-                <span class="point-title">Visualize Strategies</span>
-                <span class="point-desc">Interactive investment simulation</span>
+                <span class="point-title">Visualize</span>
+                <span class="point-desc">Interactive simulation</span>
               </div>
             </div>
             <div class="value-point">
               <div class="point-icon-container">
                 <span class="point-icon">⚡</span>
-                <div class="icon-glow"></div>
               </div>
               <div class="point-content">
-                <span class="point-title">Process-Based</span>
-                <span class="point-desc">Systematic approach to investing</span>
+                <span class="point-title">Process</span>
+                <span class="point-desc">Systematic approach</span>
               </div>
             </div>
             <div class="value-point">
               <div class="point-icon-container">
                 <span class="point-icon">🏆</span>
-                <div class="icon-glow"></div>
               </div>
               <div class="point-content">
                 <span class="point-title">Beat Market</span>
-                <span class="point-desc">Outperform traditional returns</span>
+                <span class="point-desc">Outperform returns</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Enhanced Dashboard Section -->
+      <!-- Compact Dashboard Section -->
       <div class="main-dashboard">
         <div class="dashboard-left">
-          <!-- Enhanced Performance Metrics -->
+          <!-- Compact Performance Metrics -->
           <div class="performance-grid">
             <div class="metric-card cagr">
-              <div class="metric-glow"></div>
               <div class="metric-icon">📈</div>
               <div class="metric-value counting-animation" data-target="14.17">14.17%</div>
               <div class="metric-label">CAGR</div>
-              <div class="metric-sparkles">
-                <span class="sparkle">✨</span>
-                <span class="sparkle">✨</span>
-              </div>
             </div>
             <div class="metric-card value">
-              <div class="metric-glow"></div>
               <div class="metric-icon">💰</div>
               <div class="metric-value counting-animation" data-target="17.49">₹17.49L</div>
               <div class="metric-label">Final Value</div>
-              <div class="metric-sparkles">
-                <span class="sparkle">💎</span>
-                <span class="sparkle">💎</span>
-              </div>
             </div>
             <div class="metric-card vs-nifty">
-              <div class="metric-glow"></div>
               <div class="metric-icon">🥇</div>
               <div class="metric-value counting-animation" data-target="3.05">+3.05%</div>
               <div class="metric-label">vs Nifty</div>
-              <div class="metric-sparkles">
-                <span class="sparkle">🌟</span>
-                <span class="sparkle">🌟</span>
-              </div>
             </div>
           </div>
           
-          <!-- Enhanced Investment Summary -->
+          <!-- Compact Investment Summary -->
           <div class="investment-summary">
             <div class="summary-header">
               <div class="summary-icon">📈</div>
-              <h3>Investment Journey</h3>
+              <h3>Journey Summary</h3>
             </div>
             <div class="summary-stats">
               <div class="stat">
-                <span class="stat-label">Start Date:</span>
+                <span class="stat-label">Start:</span>
                 <span class="stat-value">14-Jan-2017</span>
               </div>
               <div class="stat">
                 <span class="stat-label">Initial:</span>
-                <span class="stat-value">₹10.00L</span>
+                <span class="stat-value">₹10L</span>
               </div>
               <div class="stat">
                 <span class="stat-label">Duration:</span>
                 <span class="stat-value">8 Years</span>
               </div>
               <div class="stat highlight">
-                <span class="stat-label">Total Returns:</span>
+                <span class="stat-label">Returns:</span>
                 <span class="stat-value">+74.9%</span>
               </div>
             </div>
@@ -190,17 +169,17 @@
         </div>
         
         <div class="dashboard-right">
-          <!-- Enhanced Chart -->
+          <!-- Compact Chart -->
           <div class="chart-section">
             <div class="chart-header">
               <div class="chart-title-container">
                 <div class="chart-icon">📊</div>
-                <h3>Performance Visualization</h3>
+                <h3>Performance</h3>
               </div>
               <div class="chart-legend">
                 <span class="legend-item">
                   <span class="legend-color portfolio"></span>
-                  Your Portfolio
+                  Portfolio
                 </span>
                 <span class="legend-item">
                   <span class="legend-color nifty"></span>
@@ -210,7 +189,7 @@
             </div>
             
             <div class="chart-container">
-              <svg class="chart-svg" viewBox="0 0 300 150">
+              <svg class="chart-svg" viewBox="0 0 300 120">
                 <defs>
                   <linearGradient id="portfolioGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" style="stop-color:#1976d2;stop-opacity:1" />
@@ -224,78 +203,61 @@
                 </defs>
                 
                 <!-- Chart background area -->
-                <path d="M 20,120 Q 80,100 150,80 Q 220,60 280,40 L 280,130 L 20,130 Z" 
+                <path d="M 20,100 Q 80,80 150,60 Q 220,40 280,30 L 280,110 L 20,110 Z" 
                       fill="url(#chartGradient)" 
                       class="chart-area"/>
                 
                 <!-- Portfolio line -->
-                <path d="M 20,120 Q 80,100 150,80 Q 220,60 280,40" 
+                <path d="M 20,100 Q 80,80 150,60 Q 220,40 280,30" 
                       stroke="url(#portfolioGradient)" 
-                      stroke-width="4" 
+                      stroke-width="3" 
                       fill="none" 
                       class="chart-line portfolio-line"/>
                 
                 <!-- Nifty line -->
-                <path d="M 20,120 Q 80,110 150,100 Q 220,90 280,80" 
+                <path d="M 20,100 Q 80,90 150,80 Q 220,70 280,60" 
                       stroke="#90A4AE" 
-                      stroke-width="3" 
+                      stroke-width="2" 
                       fill="none" 
-                      stroke-dasharray="8,4"
+                      stroke-dasharray="6,3"
                       class="chart-line nifty-line"/>
                 
                 <!-- Animated data points -->
-                <circle cx="280" cy="40" r="5" fill="#42a5f5" class="data-point active">
-                  <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+                <circle cx="280" cy="30" r="4" fill="#42a5f5" class="data-point active">
+                  <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/>
                 </circle>
-                <circle cx="280" cy="80" r="4" fill="#90A4AE" class="data-point"/>
-                <circle cx="150" cy="80" r="3" fill="#64b5f6" class="data-point">
-                  <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
-                </circle>
+                <circle cx="280" cy="60" r="3" fill="#90A4AE" class="data-point"/>
               </svg>
-              
-              <!-- Chart decorations -->
-              <div class="chart-decorations">
-                <div class="chart-sparkle" style="top: 20%; left: 70%;">✨</div>
-                <div class="chart-sparkle" style="top: 60%; left: 80%;">💎</div>
-                <div class="chart-sparkle" style="top: 40%; left: 50%;">🌟</div>
-              </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Enhanced Action Section -->
+      <!-- Compact Action Section -->
       <div class="action-section">
-        <div class="action-background-glow"></div>
         <div class="action-content">
           <div class="session-info">
             <div class="current-date">{{ currentDate }}</div>
             <div class="active-status">
               <div class="status-dot"></div>
-              <span>{{ formatNumber(activeUsers) }}K Active Users</span>
+              <span>{{ formatNumber(activeUsers) }}K Active</span>
             </div>
           </div>
           
           <div class="start-journey-container">
             <button class="start-journey-btn" @click="startJourney" :disabled="isStarting">
-              <div class="btn-background-glow"></div>
               <div class="btn-content">
                 <span class="btn-icon">🚀</span>
                 <span class="btn-text">
-                  {{ isStarting ? 'STARTING JOURNEY...' : 'START YOUR JOURNEY' }}
+                  {{ isStarting ? 'STARTING...' : 'START JOURNEY' }}
                 </span>
-              </div>
-              <div class="btn-sparkles">
-                <span class="btn-sparkle">✨</span>
-                <span class="btn-sparkle">✨</span>
-                <span class="btn-sparkle">✨</span>
               </div>
             </button>
           </div>
           
           <div class="success-info">
-            <div class="success-rate">{{ successRate }}% Success Rate</div>
-            <div class="success-subtitle">Try and Test before you Trust</div>
+            <div class="success-rate">{{ successRate }}% Success</div>
+            <div class="success-subtitle">Try before Trust</div>
           </div>
         </div>
       </div>
@@ -320,7 +282,7 @@ const successRate = ref(89);
 let statsInterval;
 
 // Investment-focused icons
-const investmentIcons = ['📈', '📊', '💰', '🎯', '💎', '🏆', '⚡', '🎮', '🚀', '🌟', '💼', '📉', '🎲', '⭐', '🔥'];
+const investmentIcons = ['📈', '📊', '💰', '🎯', '💎', '🏆', '⚡', '🎮', '🚀', '🌟'];
 
 // Current date
 const currentDate = computed(() => {
@@ -337,9 +299,9 @@ const getInvestmentIcon = (index) => {
 };
 
 const getFloatingStyle = (index) => {
-  const delay = Math.random() * 5;
-  const duration = 8 + Math.random() * 4;
-  const size = 16 + Math.random() * 8;
+  const delay = Math.random() * 3;
+  const duration = 6 + Math.random() * 3;
+  const size = 12 + Math.random() * 6;
   
   return {
     left: Math.random() * 100 + '%',
@@ -350,9 +312,9 @@ const getFloatingStyle = (index) => {
 };
 
 const getShapeStyle = (index) => {
-  const size = 20 + Math.random() * 40;
-  const duration = 15 + Math.random() * 10;
-  const delay = Math.random() * 5;
+  const size = 15 + Math.random() * 25;
+  const duration = 12 + Math.random() * 8;
+  const delay = Math.random() * 3;
   
   return {
     left: Math.random() * 100 + '%',
@@ -380,7 +342,7 @@ const startJourney = async () => {
     isStarting.value = true;
     
     // Add visual feedback delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(resolve => setTimeout(resolve, 600));
     
     console.log('Navigating to journey...');
     
@@ -404,14 +366,15 @@ const startJourney = async () => {
     // Reset loading state after navigation attempt
     setTimeout(() => {
       isStarting.value = false;
-    }, 1000);
+    }, 800);
   }
 };
+
 // Lifecycle
 onMounted(() => {
   // Splash screen loading animation
   const loadingInterval = setInterval(() => {
-    loadingProgress.value += 2;
+    loadingProgress.value += 3;
     if (loadingProgress.value >= 100) {
       clearInterval(loadingInterval);
       setTimeout(() => {
@@ -420,9 +383,9 @@ onMounted(() => {
         nextTick(() => {
           triggerCountingAnimations();
         });
-      }, 600);
+      }, 400);
     }
-  }, 60);
+  }, 40);
   
   // Animate stats
   statsInterval = setInterval(() => {
@@ -430,7 +393,7 @@ onMounted(() => {
     if (Math.random() > 0.7) {
       successRate.value = Math.min(96, successRate.value + 1);
     }
-  }, 4000);
+  }, 3000);
 });
 
 onUnmounted(() => {
@@ -444,7 +407,7 @@ const triggerCountingAnimations = () => {
     const target = parseFloat(el.getAttribute('data-target'));
     if (target) {
       let current = 0;
-      const increment = target / 50;
+      const increment = target / 40;
       const timer = setInterval(() => {
         current += increment;
         if (current >= target) {
@@ -459,14 +422,14 @@ const triggerCountingAnimations = () => {
         } else {
           el.textContent = `${current.toFixed(2)}%`;
         }
-      }, 50);
+      }, 40);
     }
   });
 };
 </script>
 
 <style scoped>
-/* Enhanced Splash Screen - Journey Style */
+/* Optimized Splash Screen */
 .splash-screen {
   position: fixed;
   top: 0;
@@ -497,7 +460,7 @@ const triggerCountingAnimations = () => {
   position: absolute;
   animation: floatUpSplash infinite linear;
   opacity: 0.6;
-  filter: drop-shadow(0 0 10px rgba(25, 118, 210, 0.4));
+  filter: drop-shadow(0 0 8px rgba(25, 118, 210, 0.4));
 }
 
 @keyframes floatUpSplash {
@@ -524,31 +487,13 @@ const triggerCountingAnimations = () => {
   background-image: 
     linear-gradient(rgba(25, 118, 210, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(25, 118, 210, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridMove 30s infinite linear;
+  background-size: 40px 40px;
+  animation: gridMove 25s infinite linear;
 }
 
 @keyframes gridMove {
   0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
-}
-
-.splash-wave-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, 
-    transparent 30%, 
-    rgba(33, 150, 243, 0.1) 50%, 
-    transparent 70%);
-  animation: waveMove 20s infinite linear;
-}
-
-@keyframes waveMove {
-  0% { transform: translateX(-100%) translateY(-100%); }
-  100% { transform: translateX(100%) translateY(100%); }
+  100% { transform: translate(40px, 40px); }
 }
 
 .splash-content {
@@ -558,13 +503,13 @@ const triggerCountingAnimations = () => {
 }
 
 .splash-logo-container {
-  margin-bottom: 40px;
+  margin-bottom: 25px;
 }
 
 .splash-logo {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 80px;
+  height: 80px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -580,13 +525,13 @@ const triggerCountingAnimations = () => {
 .ring {
   position: absolute;
   border-radius: 50%;
-  border: 3px solid rgba(25, 118, 210, 0.3);
+  border: 2px solid rgba(25, 118, 210, 0.3);
 }
 
 .ring-1 {
   width: 100%;
   height: 100%;
-  animation: ringRotate 4s linear infinite;
+  animation: ringRotate 3s linear infinite;
   border-color: #1976d2;
 }
 
@@ -595,18 +540,8 @@ const triggerCountingAnimations = () => {
   height: 120%;
   top: -10%;
   left: -10%;
-  animation: ringRotate 6s linear infinite reverse;
+  animation: ringRotate 4s linear infinite reverse;
   border-color: #42a5f5;
-}
-
-.ring-3 {
-  width: 140%;
-  height: 140%;
-  top: -20%;
-  left: -20%;
-  animation: ringRotate 8s linear infinite;
-  border-color: #64b5f6;
-  border-width: 2px;
 }
 
 @keyframes ringRotate {
@@ -616,53 +551,53 @@ const triggerCountingAnimations = () => {
 
 .logo-center {
   z-index: 2;
-  animation: logoFloat 3s infinite ease-in-out;
+  animation: logoFloat 2s infinite ease-in-out;
   background: linear-gradient(135deg, #1976d2, #42a5f5);
   border-radius: 50%;
-  width: 80px;
-  height: 80px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 25px rgba(25, 118, 210, 0.4);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
 }
 
 .logo-inner {
-  font-size: 2.5rem;
-  animation: iconFloat 2s infinite ease-in-out;
+  font-size: 1.5rem;
+  animation: iconFloat 1.5s infinite ease-in-out;
 }
 
 @keyframes logoFloat {
   0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-8px) scale(1.05); }
+  50% { transform: translateY(-5px) scale(1.05); }
 }
 
 @keyframes iconFloat {
   0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(15deg); }
+  50% { transform: rotate(10deg); }
 }
 
 .splash-text {
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 
 .splash-title {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .title-vivekam {
   display: block;
-  font-size: 2.2rem;
+  font-size: 1.4rem;
   font-weight: 400;
   color: #0d47a1;
-  margin-bottom: 10px;
-  letter-spacing: 3px;
+  margin-bottom: 5px;
+  letter-spacing: 2px;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
 }
 
 .title-smartvest {
   display: block;
-  font-size: 4rem;
+  font-size: 2.5rem;
   font-weight: 900;
   background: linear-gradient(45deg, #0d47a1, #1976d2, #42a5f5);
   background-size: 200% 200%;
@@ -678,7 +613,7 @@ const triggerCountingAnimations = () => {
 }
 
 .splash-tagline {
-  font-size: 1.4rem;
+  font-size: 1rem;
   color: #1565c0;
   font-weight: 600;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -688,14 +623,14 @@ const triggerCountingAnimations = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .loading-bar {
-  width: 300px;
-  height: 8px;
+  width: 250px;
+  height: 6px;
   background: rgba(25, 118, 210, 0.2);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   position: relative;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -704,18 +639,18 @@ const triggerCountingAnimations = () => {
 .loading-progress {
   height: 100%;
   background: linear-gradient(90deg, #1976d2, #42a5f5, #64b5f6);
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.1s ease;
   position: relative;
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+  box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
 }
 
 .loading-spark {
   position: absolute;
-  right: -4px;
-  top: -2px;
-  width: 12px;
-  height: 12px;
+  right: -3px;
+  top: -1.5px;
+  width: 9px;
+  height: 9px;
   background: radial-gradient(circle, #64b5f6, transparent);
   border-radius: 50%;
   animation: sparkPulse 1s infinite;
@@ -723,22 +658,24 @@ const triggerCountingAnimations = () => {
 
 @keyframes sparkPulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.5); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 0.7; }
 }
 
 .loading-text {
   font-weight: 700;
   color: #0d47a1;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
 }
 
-/* Main Page Enhanced Styles - Journey Matching */
+/* Main Page - Optimized for No Scroll */
 .landing-page {
-  min-height: 100vh;
+  height: 100%;
   background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 25%, #90caf9 50%, #64b5f6 75%, #42a5f5 100%);
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-background {
@@ -766,7 +703,7 @@ const triggerCountingAnimations = () => {
 
 @keyframes floatShape {
   0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-  50% { transform: translateY(-30px) rotate(180deg) scale(1.1); }
+  50% { transform: translateY(-20px) rotate(180deg) scale(1.1); }
 }
 
 .grid-pattern {
@@ -776,48 +713,39 @@ const triggerCountingAnimations = () => {
   background-image: 
     linear-gradient(rgba(25, 118, 210, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(25, 118, 210, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridMove 30s infinite linear;
-}
-
-.wave-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, 
-    transparent 30%, 
-    rgba(33, 150, 243, 0.1) 50%, 
-    transparent 70%);
-  animation: waveMove 20s infinite linear;
+  background-size: 40px 40px;
+  animation: gridMove 25s infinite linear;
 }
 
 .landing-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
 }
 
-/* Enhanced Header */
+/* Compact Header */
 .header-section {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 40px;
-  margin-bottom: 30px;
-  padding: 30px 35px;
+  gap: 20px;
+  padding: 15px 20px;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 25px;
+  border-radius: 15px;
   box-shadow: 
-    0 15px 35px rgba(25, 118, 210, 0.2),
+    0 8px 20px rgba(25, 118, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 2px solid rgba(25, 118, 210, 0.3);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .header-section::before {
@@ -826,19 +754,19 @@ const triggerCountingAnimations = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #1976d2, #42a5f5, #64b5f6);
 }
 
 .main-logo {
-  width: 90px;
-  height: 90px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #1976d2, #42a5f5);
-  border-radius: 25px;
-  box-shadow: 0 10px 25px rgba(25, 118, 210, 0.3);
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(25, 118, 210, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -848,7 +776,7 @@ const triggerCountingAnimations = () => {
   width: 120%;
   height: 120%;
   background: radial-gradient(circle, rgba(66, 165, 245, 0.4), transparent);
-  animation: logoGlow 4s infinite alternate;
+  animation: logoGlow 3s infinite alternate;
 }
 
 @keyframes logoGlow {
@@ -857,28 +785,28 @@ const triggerCountingAnimations = () => {
 }
 
 .logo-inner {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   z-index: 2;
-  animation: iconFloat 3s infinite ease-in-out;
+  animation: iconFloat 2s infinite ease-in-out;
 }
 
 .app-title {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 2px;
 }
 
 .title-part-1 {
-  font-size: 1.6rem;
+  font-size: 1rem;
   font-weight: 400;
   color: #0d47a1;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
 }
 
 .title-part-2 {
-  font-size: 3rem;
+  font-size: 1.6rem;
   font-weight: 900;
   background: linear-gradient(45deg, #0d47a1, #1976d2, #42a5f5);
   background-size: 200% 200%;
@@ -889,10 +817,10 @@ const triggerCountingAnimations = () => {
 }
 
 .app-subtitle {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   color: #1565c0;
   font-weight: 600;
-  margin-top: 8px;
+  margin-top: 4px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -904,30 +832,30 @@ const triggerCountingAnimations = () => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 5px;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   background: rgba(76, 175, 80, 0.15);
-  padding: 8px 15px;
-  border-radius: 20px;
+  padding: 5px 10px;
+  border-radius: 12px;
   border: 2px solid rgba(76, 175, 80, 0.3);
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #2e7d32;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.2);
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
   background: #4CAF50;
   border-radius: 50%;
   animation: statusPulse 2s infinite;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
 }
 
 @keyframes statusPulse {
@@ -936,25 +864,25 @@ const triggerCountingAnimations = () => {
 }
 
 .performance-value {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 900;
   color: #4CAF50;
   text-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
 }
 
-/* Enhanced Value Proposition */
+/* Compact Value Proposition */
 .value-proposition {
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(25, 118, 210, 0.3);
-  border-radius: 25px;
-  padding: 30px;
-  margin-bottom: 30px;
+  border-radius: 15px;
+  padding: 15px;
   box-shadow: 
-    0 15px 35px rgba(25, 118, 210, 0.2),
+    0 8px 20px rgba(25, 118, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .value-proposition::before {
@@ -963,17 +891,17 @@ const triggerCountingAnimations = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #1976d2, #42a5f5, #64b5f6);
 }
 
 .tagline-main {
-  font-size: 1.4rem;
+  font-size: 1rem;
   color: #0d47a1;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 25px;
-  line-height: 1.4;
+  margin-bottom: 12px;
+  line-height: 1.3;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
 }
 
@@ -987,16 +915,16 @@ const triggerCountingAnimations = () => {
 .value-points {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
+  gap: 12px;
 }
 
 .value-point {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 20px;
+  gap: 8px;
+  padding: 12px;
   background: rgba(227, 242, 253, 0.5);
-  border-radius: 20px;
+  border-radius: 12px;
   border: 2px solid rgba(25, 118, 210, 0.2);
   transition: all 0.3s ease;
   position: relative;
@@ -1005,8 +933,8 @@ const triggerCountingAnimations = () => {
 
 .value-point:hover {
   background: rgba(227, 242, 253, 0.8);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(25, 118, 210, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(25, 118, 210, 0.2);
   border-color: #1976d2;
 }
 
@@ -1015,81 +943,68 @@ const triggerCountingAnimations = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 35px;
+  height: 35px;
   background: linear-gradient(135deg, #1976d2, #42a5f5);
   border-radius: 50%;
-  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
 }
 
 .point-icon {
-  font-size: 1.8rem;
+  font-size: 1.1rem;
   z-index: 2;
-}
-
-.icon-glow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(66, 165, 245, 0.4), transparent);
-  border-radius: 50%;
-  animation: iconGlow 3s infinite alternate;
-}
-
-@keyframes iconGlow {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(1.2); opacity: 0.8; }
 }
 
 .point-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .point-title {
-  font-size: 1.2rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: #0d47a1;
   text-shadow: 0 1px 3px rgba(25, 118, 210, 0.2);
 }
 
 .point-desc {
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   color: #1565c0;
   font-weight: 500;
 }
 
-/* Enhanced Dashboard */
+/* Compact Dashboard */
 .main-dashboard {
   display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 30px;
-  margin-bottom: 30px;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 15px;
+  flex: 1;
+  min-height: 0;
 }
 
 .dashboard-left {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 12px;
 }
 
-/* Enhanced Performance Grid */
+/* Compact Performance Grid */
 .performance-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 10px;
 }
 
 .metric-card {
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(25, 118, 210, 0.3);
-  border-radius: 20px;
-  padding: 25px 20px;
+  border-radius: 12px;
+  padding: 12px 8px;
   text-align: center;
   transition: all 0.3s ease;
   box-shadow: 
-    0 10px 25px rgba(25, 118, 210, 0.2),
+    0 6px 15px rgba(25, 118, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   position: relative;
@@ -1097,30 +1012,9 @@ const triggerCountingAnimations = () => {
 }
 
 .metric-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(25, 118, 210, 0.3);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
   border-color: #1976d2;
-}
-
-.metric-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(33, 150, 243, 0.15), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  animation: rotateGlow 4s infinite linear;
-}
-
-.metric-card:hover .metric-glow {
-  opacity: 1;
-}
-
-@keyframes rotateGlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 .metric-card::before {
@@ -1129,66 +1023,43 @@ const triggerCountingAnimations = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #1976d2, #42a5f5);
 }
 
 .metric-icon {
-  font-size: 2.2rem;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 4px 8px rgba(25, 118, 210, 0.3));
-  animation: iconFloat 3s infinite ease-in-out;
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 4px rgba(25, 118, 210, 0.3));
+  animation: iconFloat 2.5s infinite ease-in-out;
 }
 
 .metric-value {
-  font-size: 1.6rem;
+  font-size: 1rem;
   font-weight: 900;
   color: #0d47a1;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   display: block;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
 }
 
 .metric-label {
-  font-size: 1rem;
+  font-size: 0.7rem;
   color: #1565c0;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.8px;
   font-weight: 700;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.metric-sparkles {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  gap: 5px;
-}
-
-.sparkle {
-  font-size: 0.8rem;
-  animation: sparkleFloat 2s infinite ease-in-out;
-  opacity: 0.7;
-}
-
-.sparkle:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-@keyframes sparkleFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-5px) rotate(180deg); }
-}
-
-/* Enhanced Investment Summary */
+/* Compact Investment Summary */
 .investment-summary {
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(25, 118, 210, 0.3);
-  border-radius: 20px;
-  padding: 25px;
+  border-radius: 12px;
+  padding: 15px;
   box-shadow: 
-    0 10px 25px rgba(25, 118, 210, 0.2),
+    0 6px 15px rgba(25, 118, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   position: relative;
@@ -1200,23 +1071,23 @@ const triggerCountingAnimations = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #1976d2, #42a5f5);
 }
 
 .summary-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
   border-bottom: 2px solid rgba(25, 118, 210, 0.1);
 }
 
 .summary-icon {
-  font-size: 1.8rem;
-  width: 50px;
-  height: 50px;
+  font-size: 1.1rem;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1227,14 +1098,14 @@ const triggerCountingAnimations = () => {
 }
 
 @keyframes iconPulse {
-  0% { box-shadow: 0 0 10px rgba(25, 118, 210, 0.3); }
-  100% { box-shadow: 0 0 20px rgba(33, 150, 243, 0.5); }
+  0% { box-shadow: 0 0 6px rgba(25, 118, 210, 0.3); }
+  100% { box-shadow: 0 0 12px rgba(33, 150, 243, 0.5); }
 }
 
 .investment-summary h3 {
   margin: 0;
   color: #0d47a1;
-  font-size: 1.4rem;
+  font-size: 1rem;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
 }
@@ -1242,31 +1113,31 @@ const triggerCountingAnimations = () => {
 .summary-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 8px;
 }
 
 .stat {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 6px 0;
   border-bottom: 1px solid rgba(25, 118, 210, 0.1);
+  font-size: 0.8rem;
 }
 
 .stat.highlight {
   background: linear-gradient(135deg, rgba(25, 118, 210, 0.15), rgba(33, 150, 243, 0.1));
-  padding: 15px 20px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border-bottom: none;
   grid-column: 1 / -1;
   border: 2px solid rgba(25, 118, 210, 0.3);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+  box-shadow: 0 3px 8px rgba(25, 118, 210, 0.2);
 }
 
 .stat-label {
-  font-size: 1rem;
-  color: #1565c0;
   font-weight: 600;
+  color: #1565c0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -1278,11 +1149,11 @@ const triggerCountingAnimations = () => {
 
 .stat.highlight .stat-value {
   color: #4CAF50;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   text-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
 }
 
-/* Enhanced Chart Section */
+/* Compact Chart Section */
 .dashboard-right {
   display: flex;
   flex-direction: column;
@@ -1291,10 +1162,10 @@ const triggerCountingAnimations = () => {
 .chart-section {
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(25, 118, 210, 0.3);
-  border-radius: 20px;
-  padding: 30px;
+  border-radius: 12px;
+  padding: 15px;
   box-shadow: 
-    0 10px 25px rgba(25, 118, 210, 0.2),
+    0 6px 15px rgba(25, 118, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   flex: 1;
@@ -1307,7 +1178,7 @@ const triggerCountingAnimations = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #1976d2, #42a5f5);
 }
 
@@ -1315,19 +1186,19 @@ const triggerCountingAnimations = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 12px;
 }
 
 .chart-title-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
 .chart-icon {
-  font-size: 1.8rem;
-  width: 45px;
-  height: 45px;
+  font-size: 1.1rem;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1340,29 +1211,29 @@ const triggerCountingAnimations = () => {
   margin: 0;
   color: #0d47a1;
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1rem;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
 }
 
 .chart-legend {
   display: flex;
-  gap: 20px;
+  gap: 12px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1rem;
+  gap: 5px;
+  font-size: 0.7rem;
   color: #1565c0;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .legend-color {
-  width: 16px;
-  height: 4px;
-  border-radius: 2px;
+  width: 10px;
+  height: 3px;
+  border-radius: 1.5px;
 }
 
 .legend-color.portfolio {
@@ -1374,11 +1245,11 @@ const triggerCountingAnimations = () => {
 }
 
 .chart-container {
-  height: 200px;
+  height: 100px;
   background: linear-gradient(135deg, rgba(227, 242, 253, 0.5), rgba(240, 248, 255, 0.3));
-  border-radius: 15px;
+  border-radius: 10px;
   border: 2px solid rgba(25, 118, 210, 0.2);
-  padding: 20px;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1407,11 +1278,11 @@ const triggerCountingAnimations = () => {
 
 @keyframes lineGrow {
   from {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
   }
   to {
-    stroke-dasharray: 1000;
+    stroke-dasharray: 600;
     stroke-dashoffset: 0;
   }
 }
@@ -1420,51 +1291,19 @@ const triggerCountingAnimations = () => {
   transition: all 0.3s ease;
 }
 
-.chart-decorations {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.chart-sparkle {
-  position: absolute;
-  font-size: 1rem;
-  animation: sparkleFloat 3s infinite ease-in-out;
-  opacity: 0.6;
-}
-
-/* Enhanced Action Section */
+/* Compact Action Section */
 .action-section {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 25px;
-  padding: 30px;
+  border-radius: 15px;
+  padding: 15px;
   box-shadow: 
-    0 15px 35px rgba(25, 118, 210, 0.2),
+    0 8px 20px rgba(25, 118, 210, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 2px solid rgba(25, 118, 210, 0.3);
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
-}
-
-.action-background-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, 
-    rgba(25, 118, 210, 0.05), 
-    rgba(33, 150, 243, 0.05), 
-    rgba(66, 165, 245, 0.05));
-  animation: backgroundShift 8s infinite alternate;
-}
-
-@keyframes backgroundShift {
-  0% { opacity: 0.3; }
-  100% { opacity: 0.7; }
+  flex-shrink: 0;
 }
 
 .action-section::before {
@@ -1473,14 +1312,14 @@ const triggerCountingAnimations = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #1976d2, #42a5f5, #64b5f6);
 }
 
 .action-content {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 40px;
+  gap: 20px;
   align-items: center;
   position: relative;
   z-index: 2;
@@ -1489,11 +1328,11 @@ const triggerCountingAnimations = () => {
 .session-info {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .current-date {
-  font-size: 1.3rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #0d47a1;
   text-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
@@ -1502,8 +1341,8 @@ const triggerCountingAnimations = () => {
 .active-status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1rem;
+  gap: 5px;
+  font-size: 0.7rem;
   color: #1565c0;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -1517,23 +1356,23 @@ const triggerCountingAnimations = () => {
 .start-journey-btn {
   background: linear-gradient(135deg, #1976d2, #42a5f5);
   border: none;
-  border-radius: 30px;
-  padding: 20px 40px;
+  border-radius: 20px;
+  padding: 12px 25px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 25px rgba(25, 118, 210, 0.4);
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   position: relative;
   overflow: hidden;
 }
 
 .start-journey-btn:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 15px 35px rgba(25, 118, 210, 0.5);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.5);
 }
 
 .start-journey-btn:active {
-  transform: translateY(-1px) scale(1.02);
+  transform: translateY(-1px) scale(1.01);
 }
 
 .start-journey-btn:disabled {
@@ -1542,80 +1381,42 @@ const triggerCountingAnimations = () => {
   transform: none;
 }
 
-.btn-background-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent);
-  animation: buttonGlow 3s infinite alternate;
-}
-
-@keyframes buttonGlow {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(1.1); opacity: 0.8; }
-}
-
 .btn-content {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
   color: white;
   font-weight: 900;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   position: relative;
   z-index: 2;
 }
 
 .btn-icon {
-  font-size: 1.5rem;
-  animation: iconFloat 3s infinite ease-in-out;
+  font-size: 1rem;
+  animation: iconFloat 2.5s infinite ease-in-out;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.btn-sparkles {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  gap: 5px;
-  z-index: 3;
-}
-
-.btn-sparkle {
-  font-size: 0.8rem;
-  animation: sparkleFloat 2s infinite ease-in-out;
-  opacity: 0.8;
-}
-
-.btn-sparkle:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.btn-sparkle:nth-child(3) {
-  animation-delay: 1s;
 }
 
 .success-info {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 4px;
 }
 
 .success-rate {
-  font-size: 1.4rem;
+  font-size: 1rem;
   font-weight: 900;
   color: #4CAF50;
   text-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
 }
 
 .success-subtitle {
-  font-size: 1rem;
+  font-size: 0.7rem;
   color: #1565c0;
   font-weight: 600;
   font-style: italic;
@@ -1631,7 +1432,7 @@ const triggerCountingAnimations = () => {
 @media (max-width: 1024px) {
   .main-dashboard {
     grid-template-columns: 1fr;
-    gap: 25px;
+    gap: 12px;
   }
   
   .dashboard-left {
@@ -1644,42 +1445,43 @@ const triggerCountingAnimations = () => {
   
   .action-content {
     grid-template-columns: 1fr;
-    gap: 25px;
+    gap: 12px;
     text-align: center;
   }
   
   .header-section {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 25px;
+    gap: 12px;
   }
   
   .value-points {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 10px;
   }
 }
 
 @media (max-width: 768px) {
   .landing-container {
-    padding: 15px;
+    padding: 8px;
+    gap: 8px;
   }
   
   .header-section {
-    padding: 25px;
+    padding: 12px;
   }
   
   .title-part-1 {
-    font-size: 1.4rem;
+    font-size: 0.9rem;
   }
   
   .title-part-2 {
-    font-size: 2.5rem;
+    font-size: 1.4rem;
   }
   
   .performance-grid {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 8px;
   }
   
   .summary-stats {
@@ -1687,50 +1489,50 @@ const triggerCountingAnimations = () => {
   }
   
   .chart-container {
-    height: 170px;
+    height: 80px;
   }
   
   .start-journey-btn {
-    padding: 18px 30px;
+    padding: 10px 20px;
   }
   
   .btn-content {
-    font-size: 1.1rem;
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .title-vivekam {
-    font-size: 2rem;
+    font-size: 1.2rem;
   }
   
   .title-smartvest {
-    font-size: 3.5rem;
-  }
-  
-  .title-part-2 {
     font-size: 2rem;
   }
   
-  .tagline-main {
+  .title-part-2 {
     font-size: 1.2rem;
+  }
+  
+  .tagline-main {
+    font-size: 0.9rem;
   }
   
   .chart-header {
     flex-direction: column;
-    gap: 15px;
+    gap: 8px;
     align-items: flex-start;
   }
   
   .chart-legend {
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
   }
   
   .value-point {
     flex-direction: column;
     text-align: center;
-    gap: 12px;
+    gap: 6px;
   }
 }
 </style>

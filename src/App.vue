@@ -5,29 +5,20 @@
         <div class="rupee-symbols left">
           <span class="rupee">₹</span>
           <span class="rupee">₹</span>
-          <span class="rupee">₹</span>
         </div>
         <div class="title-section">
           <h1 class="app-title">SMARTVEST</h1>
-          <p class="app-subtitle">Your Investment Journey Starts Here</p>
+          <p class="app-subtitle">Your Investment Journey</p>
         </div>
         <div class="rupee-symbols right">
           <span class="rupee">₹</span>
           <span class="rupee">₹</span>
-          <span class="rupee">₹</span>
         </div>
-      </div>
-      <div class="header-decoration">
-        <div class="floating-rupee">₹</div>
-        <div class="floating-rupee">₹</div>
-        <div class="floating-rupee">₹</div>
-        <div class="floating-rupee">₹</div>
       </div>
     </header>
 
-    <!-- Router view without complex transitions -->
+    <!-- Router view with top padding to account for fixed header -->
     <div class="router-container">
-     
       <router-view v-slot="{ Component, route: currentRoute }">
         <component 
           :is="Component" 
@@ -83,23 +74,52 @@ router.onError((error) => {
 </script>
 
 <style>
+/* HIDE SCROLLBARS GLOBALLY */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* Chrome, Safari, Opera */
+}
+
+html, body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 #app {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* BEAUTIFUL BLUE HEADER WITH RUPEE GRAPHICS */
+/* COMPACT FIXED HEADER */
 .app-header {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3b82f6 100%);
-  padding: 2rem 1rem;
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
   text-align: center;
-  position: relative;
-  overflow: hidden;
-  border-bottom: 3px solid #60a5fa;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  border-bottom: 2px solid #60a5fa;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-header::before {
@@ -117,25 +137,27 @@ router.onError((error) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: 1rem;
   position: relative;
   z-index: 2;
+  width: 100%;
+  max-width: 800px;
 }
 
 .title-section {
   text-align: center;
+  flex: 1;
 }
 
 .app-title {
   margin: 0;
-  font-size: 3rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   color: #ffffff;
   text-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    0 4px 8px rgba(59, 130, 246, 0.4),
-    0 0 20px rgba(255, 255, 255, 0.1);
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(59, 130, 246, 0.4);
   background: linear-gradient(45deg, #ffffff, #e0f2fe, #ffffff);
   background-clip: text;
   -webkit-background-clip: text;
@@ -143,79 +165,35 @@ router.onError((error) => {
 }
 
 .app-subtitle {
-  margin: 0.5rem 0 0 0;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 0.6rem;
   color: #e0f2fe;
   font-weight: 300;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   opacity: 0.9;
 }
 
 .rupee-symbols {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 
 .rupee {
-  font-size: 2rem;
+  font-size: 1rem;
   color: #fbbf24;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   animation: bounce 2s ease-in-out infinite;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .rupee:hover {
-  transform: scale(1.2);
+  transform: scale(1.1);
   color: #f59e0b;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .rupee:nth-child(1) { animation-delay: 0s; }
 .rupee:nth-child(2) { animation-delay: 0.3s; }
-.rupee:nth-child(3) { animation-delay: 0.6s; }
-
-.header-decoration {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.floating-rupee {
-  position: absolute;
-  font-size: 1.5rem;
-  color: rgba(251, 191, 36, 0.3);
-  animation: float 6s ease-in-out infinite;
-}
-
-.floating-rupee:nth-child(1) {
-  top: 20%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.floating-rupee:nth-child(2) {
-  top: 60%;
-  right: 15%;
-  animation-delay: 1.5s;
-}
-
-.floating-rupee:nth-child(3) {
-  top: 30%;
-  left: 5%;
-  animation-delay: 3s;
-}
-
-.floating-rupee:nth-child(4) {
-  bottom: 20%;
-  right: 8%;
-  animation-delay: 4.5s;
-}
 
 /* ANIMATIONS */
 @keyframes shimmer {
@@ -224,207 +202,96 @@ router.onError((error) => {
 }
 
 @keyframes titleGlow {
-  0% { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(59, 130, 246, 0.4), 0 0 20px rgba(255, 255, 255, 0.1); }
-  100% { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(59, 130, 246, 0.6), 0 0 30px rgba(255, 255, 255, 0.2); }
+  0% { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(59, 130, 246, 0.4); }
+  100% { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(59, 130, 246, 0.6); }
 }
 
 @keyframes bounce {
   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
+  40% { transform: translateY(-5px); }
+  60% { transform: translateY(-2px); }
 }
 
-@keyframes float {
-  0%, 100% { 
-    transform: translateY(0px) rotate(0deg);
-    opacity: 0.3;
-  }
-  25% { 
-    transform: translateY(-20px) rotate(90deg);
-    opacity: 0.6;
-  }
-  50% { 
-    transform: translateY(-10px) rotate(180deg);
-    opacity: 0.4;
-  }
-  75% { 
-    transform: translateY(-15px) rotate(270deg);
-    opacity: 0.5;
-  }
-}
-
-/* DEBUG AND NAVIGATION STYLES */
-.debug-header {
-  background: #f0f0f0;
-  padding: 10px;
-  border-bottom: 2px solid #ccc;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.test-btn {
-  background: #1976d2;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background 0.3s ease;
-}
-
-.test-btn:hover {
-  background: #1565c0;
-}
-
-.simple-nav {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-  padding: 15px;
-  display: flex;
-  gap: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.nav-link:hover {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.nav-link.router-link-active {
-  background: linear-gradient(135deg, #059669, #047857);
-  border-color: #260572;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
+/* ROUTER CONTAINER */
 .router-container {
-  padding: 30px;
-  min-height: 500px;
-  margin: 0 auto;
-}
-
-.route-debug {
-  background: linear-gradient(135deg, #fffbf0, #fef3c7);
-  padding: 15px;
-  margin-bottom: 25px;
-  border: 2px solid #f59e0b;
-  border-radius: 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  flex: 1;
+  margin-top: 60px;
+  overflow: hidden;
+  height: calc(100vh - 60px);
 }
 
 .route-component {
-  min-height: 400px;
-  border: 3px groove #063883;
-  padding: 30px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.1);
+  height: 100%;
 }
 
 .no-component {
   color: #dc2626;
   font-weight: bold;
-  font-size: 1.1rem;
-  padding: 50px;
+  font-size: 1rem;
+  padding: 30px;
   text-align: center;
-  border: 3px solid #ef4444;
-  border-radius: 12px;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
   background: linear-gradient(135deg, #fef2f2, #fee2e2);
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+  margin: 20px;
 }
 
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
+  .app-header {
+    padding: 0.4rem 0.8rem;
+    height: 45px;
+  }
+  
   .header-content {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .rupee-symbols {
-    flex-direction: row;
-    gap: 1rem;
-  }
-  
-  .rupee-symbols.left,
-  .rupee-symbols.right {
-    order: 2;
-  }
-  
-  .title-section {
-    order: 1;
+    gap: 0.8rem;
   }
   
   .app-title {
-    font-size: 2rem;
-    letter-spacing: 2px;
+    font-size: 1rem;
+    letter-spacing: 1px;
   }
   
   .app-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.55rem;
   }
   
   .rupee {
-    font-size: 1.5rem;
-  }
-  
-  .simple-nav {
-    flex-wrap: wrap;
-    justify-content: center;
+    font-size: 0.9rem;
   }
   
   .router-container {
-    padding: 20px;
+    margin-top: 55px;
+    height: calc(100vh - 55px);
   }
 }
 
 @media (max-width: 480px) {
   .app-header {
-    padding: 1.5rem 1rem;
+    padding: 0.3rem 0.5rem;
+    height: 40px;
+  }
+  
+  .header-content {
+    gap: 0.5rem;
   }
   
   .app-title {
-    font-size: 1.8rem;
-    letter-spacing: 1px;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
   }
   
   .app-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.5rem;
   }
   
   .rupee {
-    font-size: 1.2rem;
-  }
-  
-  .floating-rupee {
-    font-size: 1rem;
-  }
-  
-  .debug-header {
-    flex-direction: column;
-    gap: 5px;
-    text-align: center;
+    font-size: 0.8rem;
   }
   
   .router-container {
-    padding: 15px;
+    margin-top: 50px;
+    height: calc(100vh - 50px);
   }
 }
 
@@ -434,10 +301,8 @@ html {
 }
 
 /* FOCUS STYLES FOR ACCESSIBILITY */
-.nav-link:focus,
-.test-btn:focus,
 .rupee:focus {
-  outline: 2px solid #fbbf24;
-  outline-offset: 2px;
+  outline: 1px solid #fbbf24;
+  outline-offset: 1px;
 }
 </style>
