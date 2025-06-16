@@ -56,9 +56,65 @@
                 </div>
               </div>
 
-              <!-- Compact Dice Control -->
+              <!-- Enhanced Dice Control with single animated dice -->
               <div class="config-dice-control">
-                <div class="dice-icon-mini">🎲</div>
+                <div 
+                  class="dice-icon-enhanced" 
+                  :class="{ 'rolling': isRolling }"
+                  @click="rollDiceFromJourney"
+                  v-if="diceRolls.length < maxRolls"
+                >
+                  <div class="dice-cube-mini">
+                    <div class="dice-face-mini front">
+                      <div class="dots">
+                        <div class="dot center"></div>
+                      </div>
+                    </div>
+                    <div class="dice-face-mini back">
+                      <div class="dots">
+                        <div class="dot top-left"></div>
+                        <div class="dot bottom-right"></div>
+                      </div>
+                    </div>
+                    <div class="dice-face-mini right">
+                      <div class="dots">
+                        <div class="dot top-left"></div>
+                        <div class="dot center"></div>
+                        <div class="dot bottom-right"></div>
+                      </div>
+                    </div>
+                    <div class="dice-face-mini left">
+                      <div class="dots">
+                        <div class="dot top-left"></div>
+                        <div class="dot top-right"></div>
+                        <div class="dot bottom-left"></div>
+                        <div class="dot bottom-right"></div>
+                      </div>
+                    </div>
+                    <div class="dice-face-mini top">
+                      <div class="dots">
+                        <div class="dot top-left"></div>
+                        <div class="dot top-right"></div>
+                        <div class="dot center"></div>
+                        <div class="dot bottom-left"></div>
+                        <div class="dot bottom-right"></div>
+                      </div>
+                    </div>
+                    <div class="dice-face-mini bottom">
+                      <div class="dots">
+                        <div class="dot top-left"></div>
+                        <div class="dot top-right"></div>
+                        <div class="dot center-left"></div>
+                        <div class="dot center-right"></div>
+                        <div class="dot bottom-left"></div>
+                        <div class="dot bottom-right"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dice-sparkles">
+                    <div v-for="n in 6" :key="n" class="sparkle-mini" :style="getSparkleStyle(n)">✨</div>
+                  </div>
+                </div>
                 <div class="dice-results-mini">
                   <div class="roll-history-mini">
                     <span 
@@ -71,14 +127,6 @@
                   </div>
                   <div class="total-days-mini">{{ totalDays }}d</div>
                 </div>
-                <button 
-                  v-if="diceRolls.length < maxRolls"
-                  class="mini-roll-btn"
-                  @click="rollDiceFromJourney"
-                  :disabled="isRolling"
-                >
-                  {{ isRolling ? '⚡' : '🎲' }}
-                </button>
               </div>
             </div>
           </div>
@@ -87,17 +135,17 @@
           <div class="nifty-comparison-panel">
             <div class="comparison-header">
               <div class="comparison-icon">📊</div>
-              <div class="comparison-title">NIFTY COMPARISON</div>
+              <div class="comparison-title">INDEX COMPARISON</div>
             </div>
             
             <div class="comparison-stats">
               <div class="comparison-stat">
-                <div class="stat-label">Day Start:</div>
-                <div class="stat-value">{{ ((currentDay?.day || 1) === 1 ? 0 : journeyDays[Math.max(0, (currentDay?.day || 1) - 2)]?.portfolio?.percentChange || 0).toFixed(2) }}%</div>
+                <div class="stat-label">Portfolio NAV:</div>
+                <div class="stat-value">{{ ((currentDay?.smartVestData?.PortfolioNav || 1) - 1).toFixed(4) }}</div>
               </div>
               <div class="comparison-stat">
-                <div class="stat-label">Day End:</div>
-                <div class="stat-value">{{ (currentDay?.portfolio?.percentChange || 0).toFixed(2) }}%</div>
+                <div class="stat-label">Index NAV:</div>
+                <div class="stat-value">{{ ((currentDay?.smartVestData?.IndexNav || 1) - 1).toFixed(4) }}</div>
               </div>
               <div class="comparison-stat highlight">
                 <div class="stat-label">Your Portfolio:</div>
@@ -106,7 +154,7 @@
                 </div>
               </div>
               <div class="comparison-stat highlight">
-                <div class="stat-label">NIFTY:</div>
+                <div class="stat-label">Index Change:</div>
                 <div class="stat-value neutral">{{ (currentDay?.portfolio?.niftyChange || 0).toFixed(1) }}%</div>
               </div>
             </div>
@@ -138,7 +186,7 @@
             <div class="performance-metric-card nifty-metric">
               <div class="metric-icon">📊</div>
               <div class="metric-content">
-                <div class="metric-label">NIFTY</div>
+                <div class="metric-label">Index</div>
                 <div class="metric-value neutral">{{ (currentDay?.metrics?.niftyIRR || 0).toFixed(1) }}%</div>
                 <div class="metric-visual">
                   <div class="progress-bar">
@@ -154,7 +202,7 @@
             <div class="performance-metric-card vs-metric">
               <div class="metric-icon">⚡</div>
               <div class="metric-content">
-                <div class="metric-label">vs NIFTY</div>
+                <div class="metric-label">vs Index</div>
                 <div :class="['metric-value', currentDayVersusNifty >= 0 ? 'positive' : 'negative']">
                   {{ currentDayVersusNifty >= 0 ? '+' : '' }}{{ currentDayVersusNifty.toFixed(1) }}%
                 </div>
@@ -173,7 +221,7 @@
               <div class="metric-icon">💰</div>
               <div class="metric-content">
                 <div class="metric-label">Portfolio Value</div>
-                <div class="metric-value portfolio-text">₹{{ formatAmount(currentDay?.portfolio?.totalValue || journeySetup.amount) }}</div>
+                <div class="metric-value portfolio-text">₹{{ formatAmount(currentDay?.smartVestData?.PortfolioValue || currentDay?.portfolio?.totalValue || journeySetup.amount) }}</div>
                 <div class="metric-subtext">
                   Day {{ currentDay?.day || 1 }} of {{ totalDays }}
                 </div>
@@ -202,11 +250,12 @@
             </div>
           </div>
 
-          <!-- Three Portfolio Tiles - Now in Right Pane -->
+          <!-- Three Portfolio Tiles - Enhanced with better colors and backgrounds -->
           <div class="three-panel-layout-right">
             
             <!-- Start Portfolio -->
             <div class="portfolio-panel start-portfolio">
+              <div class="portfolio-bg-pattern start-pattern"></div>
               <div class="panel-header">
                 <h3 class="panel-title">START</h3>
                 <div class="panel-date">{{ formatDateShort(journeySetup.startDate) }}</div>
@@ -220,8 +269,8 @@
                     class="stock-line"
                   >
                     <span class="stock-symbol">{{ stock.symbol }}</span>
-                    <span class="stock-price">{{ Math.floor(journeySetup.amount / (journeySetup.numberOfStocks * stock.price)) }}</span>
-                    <span class="stock-value">₹{{ formatAmount(Math.floor(journeySetup.amount / journeySetup.numberOfStocks)) }}</span>
+                    <span class="stock-price">{{ stock.quantity || Math.floor(journeySetup.amount / (journeySetup.numberOfStocks * stock.price)) }}</span>
+                    <span class="stock-value">₹{{ formatAmount(stock.price * (stock.quantity || Math.floor(journeySetup.amount / (journeySetup.numberOfStocks * stock.price)))) }}</span>
                   </div>
                 </div>
 
@@ -252,6 +301,7 @@
 
             <!-- Current Day Snapshot -->
             <div class="portfolio-panel current-snapshot">
+              <div class="portfolio-bg-pattern current-pattern"></div>
               <div class="panel-header">
                 <h3 class="panel-title">DAY {{ currentDay?.day || 1 }}</h3>
                 <div class="panel-subtitle">{{ formatDateShort(currentDay?.date) }}</div>
@@ -299,6 +349,7 @@
 
             <!-- Final Portfolio -->
             <div class="portfolio-panel final-portfolio">
+              <div class="portfolio-bg-pattern final-pattern"></div>
               <div class="panel-header">
                 <h3 class="panel-title">FINAL</h3>
                 <div class="panel-date">{{ formatDateShort(getFinalDate()) }}</div>
@@ -457,79 +508,24 @@
         </div>
 
         <div class="combined-content">
-          <!-- Left: Setup Form -->
-          <div class="setup-section">
-            <div class="setup-form">
+          <!-- Integrated Setup and Dice Layout -->
+          <div class="integrated-setup-layout">
+            <!-- Top Section: Form Fields in Grid -->
+            <div class="setup-form-grid">
               <div class="form-section">
                 <div class="section-header">
                   <div class="section-icon">📅</div>
                   <h3>Journey Date</h3>
                 </div>
-                <div class="date-selector">
-                  <div class="date-input-group">
-                    <label>Start Date</label>
-                    <input 
-                      type="date" 
-                      v-model="journeySetup.startDate" 
-                      class="date-input"
-                      :max="maxDate"
-                    />
-                    <div class="date-hint">Select any date before {{ formatDate(maxDate) }}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-section">
-                <div class="section-header">
-                  <div class="section-icon">📊</div>
-                  <h3>Number of Stocks</h3>
-                </div>
-                <div class="stocks-selector">
-                  <div class="stocks-input-group">
-                    <div class="stocks-slider">
-                      <input 
-                        type="range" 
-                        v-model="journeySetup.numberOfStocks" 
-                        min="5"
-                        max="25"
-                        class="slider"
-                      />
-                      <div class="slider-value">{{ journeySetup.numberOfStocks }}</div>
-                    </div>
-                    <div class="stocks-presets">
-                      <button 
-                        v-for="num in [5, 10, 15, 20, 25]" 
-                        :key="num"
-                        :class="['preset-btn', { active: journeySetup.numberOfStocks === num }]"
-                        @click="journeySetup.numberOfStocks = num"
-                      >
-                        {{ num }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-section">
-                <div class="section-header">
-                  <div class="section-icon">📦</div>
-                  <h3>Investment Product</h3>
-                </div>
-                <div class="product-selector">
-                  <div 
-                    v-for="product in availableProducts" 
-                    :key="product.id"
-                    :class="['product-card', { active: journeySetup.selectedProduct === product.id }]"
-                    @click="selectProduct(product.id)"
-                  >
-                    <div class="product-icon">{{ product.icon }}</div>
-                    <div class="product-name">{{ product.name }}</div>
-                    <div class="product-risk">
-                      <div class="risk-stars">
-                        <span v-for="n in 5" :key="n" :class="['star', { filled: n <= product.risk }]">⭐</span>
-                      </div>
-                    </div>
-                  </div>
+                <div class="date-input-group">
+                  <label>Start Date</label>
+                  <input 
+                    type="date" 
+                    v-model="journeySetup.startDate" 
+                    class="date-input"
+                    :max="maxDate"
+                  />
+                  <div class="date-hint">Select any date before {{ formatDate(maxDate) }}</div>
                 </div>
               </div>
 
@@ -538,108 +534,277 @@
                   <div class="section-icon">💰</div>
                   <h3>Investment Amount</h3>
                 </div>
-                <div class="amount-selector">
-                  <div class="amount-input-group">
-                    <input 
-                      type="number" 
-                      v-model="journeySetup.amount" 
-                      class="amount-input"
-                      min="10000"
-                      max="10000000"
-                      step="1000"
-                      placeholder="Enter amount"
-                    />
-                    <div class="amount-suggestions">
-                      <button 
-                        v-for="amount in suggestedAmounts" 
-                        :key="amount"
-                        class="amount-btn"
-                        @click="selectAmount(amount)"
-                        :class="{ active: journeySetup.amount === amount }"
-                      >
-                        ₹{{ formatAmount(amount) }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: Dice Section -->
-          <div class="dice-section">
-            <div class="dice-header">
-              <h2 class="dice-title">Roll for Journey Length</h2>
-              <div class="dice-subtitle">Roll to determine your investment timeline</div>
-              <div v-if="currentPhase === 'dice'" class="dice-progress">
-                <div class="progress-text">Rolls: {{ diceRolls.length }} / {{ minRolls }}</div>
-                <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: (diceRolls.length / minRolls) * 100 + '%' }"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="dice-arena">
-              <div class="dice-container">
-                <div 
-                  v-for="(dice, index) in activeDice" 
-                  :key="index"
-                  :class="['dice-cube', { rolling: dice.isRolling }]"
-                  :style="getDiceStyle(index)"
-                >
-                  <div class="dice-face front">{{ dice.value }}</div>
-                  <div class="dice-face back">{{ dice.value }}</div>
-                  <div class="dice-face right">{{ dice.value }}</div>
-                  <div class="dice-face left">{{ dice.value }}</div>
-                  <div class="dice-face top">{{ dice.value }}</div>
-                  <div class="dice-face bottom">{{ dice.value }}</div>
-                </div>
-                <div class="sparkle-effects" :class="{ active: isRolling }">
-                  <div v-for="n in 8" :key="n" class="sparkle" :style="getSparkleStyle(n)">✨</div>
-                </div>
-              </div>
-
-              <div v-if="diceRolls.length > 0" class="dice-results">
-                <div class="results-display">
-                  <div class="results-grid">
-                    <div 
-                      v-for="(result, index) in diceRolls" 
-                      :key="index"
-                      class="result-item"
+                <div class="amount-input-group">
+                  <input 
+                    type="number" 
+                    v-model="journeySetup.amount" 
+                    class="amount-input"
+                    min="10000"
+                    max="10000000"
+                    step="1000"
+                    placeholder="Enter amount"
+                  />
+                  <div class="amount-suggestions">
+                    <button 
+                      v-for="amount in suggestedAmounts" 
+                      :key="amount"
+                      class="amount-btn"
+                      @click="selectAmount(amount)"
+                      :class="{ active: journeySetup.amount === amount }"
                     >
-                      <div class="result-dice">🎲</div>
-                      <div class="result-value">{{ result }}</div>
-                    </div>
+                      ₹{{ formatAmount(amount) }}
+                    </button>
                   </div>
-                  <div class="total-days">
-                    <div class="total-label">Journey Days:</div>
-                    <div class="total-value">{{ totalDays }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Middle Section: Stocks and Products -->
+            <div class="middle-section">
+              <div class="form-section stocks-section">
+                <div class="section-header">
+                  <div class="section-icon">📊</div>
+                  <h3>Number of Stocks</h3>
+                </div>
+                <div class="stocks-selector-compact">
+                  <div class="stocks-slider">
+                    <input 
+                      type="range" 
+                      v-model="journeySetup.numberOfStocks" 
+                      min="5"
+                      max="25"
+                      class="slider"
+                    />
+                    <div class="slider-value">{{ journeySetup.numberOfStocks }}</div>
+                  </div>
+                  <div class="stocks-presets">
+                    <button 
+                      v-for="num in [5, 10, 15, 20, 25]" 
+                      :key="num"
+                      :class="['preset-btn', { active: journeySetup.numberOfStocks === num }]"
+                      @click="journeySetup.numberOfStocks = num"
+                    >
+                      {{ num }}
+                    </button>
                   </div>
                 </div>
               </div>
 
-              <div class="dice-controls">
-                <button 
-                  v-if="!isSetupComplete"
-                  class="setup-incomplete-btn"
-                  disabled
-                >
-                  <span>Complete Setup First</span>
-                </button>
-
-                <button 
-                  v-else
-                  class="roll-btn"
-                  @click="rollDice"
-                  :disabled="isRolling || (diceRolls.length >= maxRolls)"
-                >
-                  <div class="roll-btn-content">
-                    <span class="roll-icon">🎲</span>
-                    <span class="roll-text">
-                      {{ isRolling ? 'ROLLING...' : 'ROLL DICE' }}
-                    </span>
+              <div class="form-section products-section">
+                <div class="section-header">
+                  <div class="section-icon">📦</div>
+                  <h3>Investment Product</h3>
+                </div>
+                <div class="product-selector-compact">
+                  <div 
+                    v-for="product in availableProducts" 
+                    :key="product.id"
+                    :class="['product-card-compact', { active: journeySetup.selectedProduct === product.id }]"
+                    @click="selectProduct(product.id)"
+                  >
+                    <div class="product-icon-compact">{{ product.icon }}</div>
+                    <div class="product-info">
+                      <div class="product-name-compact">{{ product.name.split(' ')[0] }}</div>
+                      <div class="risk-stars">
+                        <span v-for="n in 5" :key="n" :class="['star', { filled: n <= product.risk }]">⭐</span>
+                      </div>
+                    </div>
                   </div>
-                </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Section: Enhanced Dice Area -->
+            <div class="dice-gaming-section">
+              <div class="dice-header-enhanced">
+                <div class="dice-title-main">🎲 Roll for Journey Length</div>
+                <div class="dice-subtitle">Determine your investment timeline</div>
+                <div v-if="currentPhase === 'dice'" class="dice-progress-bar">
+                  <div class="progress-label">Rolls: {{ diceRolls.length }} / {{ minRolls }}</div>
+                  <div class="progress-track">
+                    <div class="progress-fill-dice" :style="{ width: (diceRolls.length / minRolls) * 100 + '%' }"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dice-main-area">
+                <!-- Left: Dice Arena -->
+                <div class="dice-arena-enhanced">
+                  <div class="dice-container-main" :class="{ rolling: isRolling }">
+                    <div 
+                      v-for="(dice, index) in activeDice" 
+                      :key="index"
+                      :class="['dice-cube-enhanced', { rolling: dice.isRolling }]"
+                      :style="getDiceStyle(index)"
+                    >
+                      <div class="dice-face-enhanced front">
+                        <div class="dots">
+                          <div class="dot center"></div>
+                        </div>
+                      </div>
+                      <div class="dice-face-enhanced back">
+                        <div class="dots">
+                          <div class="dot top-left"></div>
+                          <div class="dot bottom-right"></div>
+                        </div>
+                      </div>
+                      <div class="dice-face-enhanced right">
+                        <div class="dots">
+                          <div class="dot top-left"></div>
+                          <div class="dot center"></div>
+                          <div class="dot bottom-right"></div>
+                        </div>
+                      </div>
+                      <div class="dice-face-enhanced left">
+                        <div class="dots">
+                          <div class="dot top-left"></div>
+                          <div class="dot top-right"></div>
+                          <div class="dot bottom-left"></div>
+                          <div class="dot bottom-right"></div>
+                        </div>
+                      </div>
+                      <div class="dice-face-enhanced top">
+                        <div class="dots">
+                          <div class="dot top-left"></div>
+                          <div class="dot top-right"></div>
+                          <div class="dot center"></div>
+                          <div class="dot bottom-left"></div>
+                          <div class="dot bottom-right"></div>
+                        </div>
+                      </div>
+                      <div class="dice-face-enhanced bottom">
+                        <div class="dots">
+                          <div class="dot top-left"></div>
+                          <div class="dot top-right"></div>
+                          <div class="dot center-left"></div>
+                          <div class="dot center-right"></div>
+                          <div class="dot bottom-left"></div>
+                          <div class="dot bottom-right"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="sparkle-effects-main" :class="{ active: isRolling }">
+                      <div v-for="n in 12" :key="n" class="sparkle-main" :style="getSparkleStyle(n)">✨</div>
+                    </div>
+                  </div>
+
+                  <div class="dice-roll-button">
+                    <div 
+                      v-if="!isSetupComplete"
+                      class="setup-incomplete-message"
+                    >
+                      <span>Complete Setup First</span>
+                    </div>
+
+                    <button
+                      v-else
+                      class="roll-btn-enhanced"
+                      @click="rollDice"
+                      :disabled="isRolling || (diceRolls.length >= maxRolls)"
+                      :class="{ 
+                        rolling: isRolling 
+                      }"
+                    >
+                      <span class="roll-icon-main">🎲</span>
+                      <span class="roll-text-main">
+                        {{ isRolling ? 'ROLLING...' : 'ROLL DICE' }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Right: Results & Stats -->
+                <div class="dice-results-area">
+                  <div v-if="diceRolls.length > 0" class="results-display-enhanced">
+                    <div class="results-header">
+                      <h4>🎯 Roll Results</h4>
+                    </div>
+                    <div class="results-grid-enhanced">
+                      <div 
+                        v-for="(result, index) in diceRolls" 
+                        :key="index"
+                        class="result-item-enhanced"
+                      >
+                        <div class="result-number">{{ result }}</div>
+                        <div class="result-label">Roll {{ index + 1 }}</div>
+                      </div>
+                    </div>
+                    <div class="total-summary">
+                      <div class="total-label">Total Journey Days:</div>
+                      <div class="total-value-enhanced">{{ totalDays }}</div>
+                    </div>
+                  </div>
+
+                  <div v-else class="dice-instructions">
+                    <div class="instruction-icon">🎮</div>
+                    <h4>Ready to Start?</h4>
+                    <p>Complete the setup form and roll the dice to determine your investment journey length!</p>
+                    <div class="dice-info">
+                      <div class="info-item">
+                        <span class="info-icon">🎲</span>
+                        <span>Each roll: 1-6 days</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-icon">📅</span>
+                        <span>Base journey: 5 days</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-icon">🎯</span>
+                        <span>Maximum: {{ maxRolls }} rolls</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Journey Preview -->
+                  <div v-if="isSetupComplete" class="journey-preview">
+                    <div class="preview-header">
+                      <h4>📊 Journey Preview</h4>
+                    </div>
+                    <div class="preview-stats">
+                      <div class="preview-item">
+                        <span class="preview-icon">📅</span>
+                        <div class="preview-content">
+                          <div class="preview-label">Start Date</div>
+                          <div class="preview-value">{{ formatDateShort(journeySetup.startDate) }}</div>
+                        </div>
+                      </div>
+                      <div class="preview-item">
+                        <span class="preview-icon">💰</span>
+                        <div class="preview-content">
+                          <div class="preview-label">Investment</div>
+                          <div class="preview-value">₹{{ formatAmount(journeySetup.amount) }}</div>
+                        </div>
+                      </div>
+                      <div class="preview-item">
+                        <span class="preview-icon">📊</span>
+                        <div class="preview-content">
+                          <div class="preview-label">Stocks</div>
+                          <div class="preview-value">{{ journeySetup.numberOfStocks }}</div>
+                        </div>
+                      </div>
+                      <div class="preview-item">
+                        <span class="preview-icon">📦</span>
+                        <div class="preview-content">
+                          <div class="preview-label">Strategy</div>
+                          <div class="preview-value">{{ selectedProductName.split(' ')[0] }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Error Display -->
+                  <div v-if="journeyError" class="error-display">
+                    <div class="error-header">
+                      <span class="error-icon">⚠️</span>
+                      <h4>Error Loading Journey</h4>
+                    </div>
+                    <div class="error-message">{{ journeyError }}</div>
+                    <button class="retry-btn" @click="retryJourney">
+                      <span class="btn-icon">🔄</span>
+                      <span class="btn-text">Retry</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -718,7 +883,7 @@
                   </div>
                   <div class="legend-item nifty">
                     <div class="legend-dot nifty-dot"></div>
-                    <span class="legend-text">NIFTY</span>
+                    <span class="legend-text">Index</span>
                   </div>
                 </div>
               </div>
@@ -743,7 +908,7 @@
                 <div class="metric-card outperformance">
                   <div class="metric-icon">⚡</div>
                   <div class="metric-info">
-                    <div class="metric-label">vs NIFTY</div>
+                    <div class="metric-label">vs Index</div>
                     <div :class="['metric-value', currentDayVersusNifty >= 0 ? 'positive' : 'negative']">
                       {{ currentDayVersusNifty >= 0 ? '+' : '' }}{{ currentDayVersusNifty.toFixed(1) }}%
                     </div>
@@ -759,7 +924,7 @@
                   <div class="metric-icon">💎</div>
                   <div class="metric-info">
                     <div class="metric-label">Current Value</div>
-                    <div class="metric-value portfolio-color">₹{{ formatAmount(currentDay?.portfolio?.totalValue || journeySetup.amount) }}</div>
+                    <div class="metric-value portfolio-color">₹{{ formatAmount(currentDay?.smartVestData?.PortfolioValue || currentDay?.portfolio?.totalValue || journeySetup.amount) }}</div>
                   </div>
                   <div class="metric-visual">
                     <div class="progress-ring">
@@ -888,14 +1053,22 @@
           <div class="section-title-compact">📈 Portfolio</div>
           <div class="stats-grid-compact">
             <div class="stat-compact">
-              <span class="stat-label-compact">Value</span>
-              <span class="stat-value-compact">₹{{ formatAmount(dayTooltip.day?.portfolio?.totalValue || 0) }}</span>
+              <span class="stat-label-compact">Portfolio Value</span>
+              <span class="stat-value-compact">₹{{ formatAmount(dayTooltip.day?.smartVestData?.PortfolioValue || dayTooltip.day?.portfolio?.totalValue || 0) }}</span>
             </div>
             <div class="stat-compact">
-              <span class="stat-label-compact">P&L</span>
-              <span :class="['stat-value-compact', dayTooltip.day?.portfolio?.pnl >= 0 ? 'positive' : 'negative']">
-                ₹{{ formatAmount(Math.abs(dayTooltip.day?.portfolio?.pnl || 0)) }}
+              <span class="stat-label-compact">Index Value</span>
+              <span class="stat-value-compact">{{ dayTooltip.day?.smartVestData?.IndexValue || dayTooltip.day?.portfolio?.indexValue || 'N/A' }}</span>
+            </div>
+            <div class="stat-compact">
+              <span class="stat-label-compact">Portfolio NAV</span>
+              <span :class="['stat-value-compact', (dayTooltip.day?.smartVestData?.PortfolioNav || 1) >= 1 ? 'positive' : 'negative']">
+                {{ ((dayTooltip.day?.smartVestData?.PortfolioNav || 1) - 1).toFixed(4) }}
               </span>
+            </div>
+            <div class="stat-compact">
+              <span class="stat-label-compact">Index NAV</span>
+              <span class="stat-value-compact neutral">{{ ((dayTooltip.day?.smartVestData?.IndexNav || 1) - 1).toFixed(4) }}</span>
             </div>
             <div class="stat-compact">
               <span class="stat-label-compact">Change</span>
@@ -904,8 +1077,8 @@
               </span>
             </div>
             <div class="stat-compact">
-              <span class="stat-label-compact">vs NIFTY</span>
-              <span class="stat-value-compact neutral">{{ (dayTooltip.day?.portfolio?.niftyChange || 0).toFixed(1) }}%</span>
+              <span class="stat-label-compact">Cash</span>
+              <span class="stat-value-compact">₹{{ formatAmount(dayTooltip.day?.portfolio?.cash || 0) }}</span>
             </div>
           </div>
         </div>
@@ -957,6 +1130,12 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 
+// API Configuration
+const API_BASE_URL = '/api/mobile';
+const API_ENDPOINTS = {
+  SMARTVEST_DATA: '/Getsmartvestdata'
+};
+
 // Phase management
 const currentPhase = ref('setup'); // 'setup', 'dice', 'journey'
 
@@ -986,7 +1165,7 @@ const dayTooltip = ref({
 // Setup form data
 const journeySetup = ref({
   startDate: '',
-  selectedProduct: '',
+  selectedProduct: 'BG', // Default to Bio Growth
   amount: 100000,
   numberOfStocks: 10
 });
@@ -998,28 +1177,21 @@ const maxDate = computed(() => {
   return date.toISOString().split('T')[0];
 });
 
-// Available products
+// Available products matching API requirements
 const availableProducts = ref([
   {
-    id: 'balanced',
-    name: 'Balanced Portfolio',
-    description: 'Moderate risk with diversified investments',
-    icon: '⚖️',
-    risk: 3
-  },
-  {
-    id: 'growth',
-    name: 'Growth Portfolio',
-    description: 'Higher risk with growth-focused stocks',
-    icon: '🚀',
+    id: 'BG',
+    name: 'Bio Growth',
+    description: 'Biotechnology focused growth portfolio',
+    icon: '🧬',
     risk: 4
   },
   {
-    id: 'conservative',
-    name: 'Conservative Portfolio',
-    description: 'Lower risk with stable investments',
-    icon: '🛡️',
-    risk: 2
+    id: 'LG',
+    name: 'LargeCap Growth',
+    description: 'Large cap growth focused portfolio',
+    icon: '📈',
+    risk: 3
   }
 ]);
 
@@ -1039,65 +1211,106 @@ const maxRolls = ref(5);
 const journeyDays = ref([]);
 const currentDayIndex = ref(0);
 const isJourneyDataLoading = ref(false);
+const journeyError = ref(null);
 const showFinalResults = ref(false);
 const autoProgressEnabled = ref(true);
 const progressInterval = ref(null);
 
-// Extended NIFTY 50 stocks data with more realistic pricing and sectors
-const niftyStocks = [
-  { symbol: 'RELIANCE', name: 'Reliance Industries', price: 2650.75, sector: 'Energy', volatility: 0.025 },
-  { symbol: 'TCS', name: 'Tata Consultancy Services', price: 3842.50, sector: 'IT', volatility: 0.018 },
-  { symbol: 'INFY', name: 'Infosys', price: 1689.30, sector: 'IT', volatility: 0.020 },
-  { symbol: 'HDFC', name: 'HDFC Bank', price: 1542.80, sector: 'Banking', volatility: 0.022 },
-  { symbol: 'ICICIBANK', name: 'ICICI Bank', price: 998.25, sector: 'Banking', volatility: 0.025 },
-  { symbol: 'ITC', name: 'ITC', price: 462.60, sector: 'FMCG', volatility: 0.015 },
-  { symbol: 'WIPRO', name: 'Wipro', price: 412.20, sector: 'IT', volatility: 0.023 },
-  { symbol: 'SBIN', name: 'State Bank of India', price: 587.45, sector: 'Banking', volatility: 0.030 },
-  { symbol: 'BHARTIARTL', name: 'Bharti Airtel', price: 1234.70, sector: 'Telecom', volatility: 0.020 },
-  { symbol: 'HCLTECH', name: 'HCL Technologies', price: 1389.90, sector: 'IT', volatility: 0.022 },
-  { symbol: 'KOTAKBANK', name: 'Kotak Mahindra Bank', price: 1672.35, sector: 'Banking', volatility: 0.024 },
-  { symbol: 'LT', name: 'Larsen & Toubro', price: 3285.15, sector: 'Infrastructure', volatility: 0.026 },
-  { symbol: 'ASIANPAINT', name: 'Asian Paints', price: 2756.60, sector: 'Consumer Goods', volatility: 0.019 },
-  { symbol: 'MARUTI', name: 'Maruti Suzuki', price: 10876.80, sector: 'Automotive', volatility: 0.021 },
-  { symbol: 'TITAN', name: 'Titan Company', price: 3128.25, sector: 'Consumer Goods', volatility: 0.024 },
-  { symbol: 'ULTRACEMCO', name: 'UltraTech Cement', price: 9634.40, sector: 'Cement', volatility: 0.028 },
-  { symbol: 'NESTLEIND', name: 'Nestle India', price: 23456.50, sector: 'FMCG', volatility: 0.016 },
-  { symbol: 'BAJFINANCE', name: 'Bajaj Finance', price: 6234.90, sector: 'NBFC', volatility: 0.032 },
-  { symbol: 'TATASTEEL', name: 'Tata Steel', price: 124.85, sector: 'Steel', volatility: 0.035 },
-  { symbol: 'SUNPHARMA', name: 'Sun Pharmaceutical', price: 1678.70, sector: 'Pharma', volatility: 0.021 },
-  { symbol: 'ONGC', name: 'Oil & Natural Gas Corp', price: 156.45, sector: 'Energy', volatility: 0.028 },
-  { symbol: 'NTPC', name: 'NTPC Limited', price: 289.60, sector: 'Power', volatility: 0.024 },
-  { symbol: 'POWERGRID', name: 'Power Grid Corp', price: 234.75, sector: 'Power', volatility: 0.020 },
-  { symbol: 'M&M', name: 'Mahindra & Mahindra', price: 1842.90, sector: 'Automotive', volatility: 0.026 },
-  { symbol: 'BAJAJFINSV', name: 'Bajaj Finserv', price: 1567.40, sector: 'Financial Services', volatility: 0.029 },
-  { symbol: 'AXISBANK', name: 'Axis Bank', price: 1098.65, sector: 'Banking', volatility: 0.027 },
-  { symbol: 'HDFCLIFE', name: 'HDFC Life Insurance', price: 672.80, sector: 'Insurance', volatility: 0.023 },
-  { symbol: 'SBILIFE', name: 'SBI Life Insurance', price: 1398.45, sector: 'Insurance', volatility: 0.022 },
-  { symbol: 'TECHM', name: 'Tech Mahindra', price: 1654.30, sector: 'IT', volatility: 0.025 },
-  { symbol: 'JSWSTEEL', name: 'JSW Steel', price: 789.55, sector: 'Steel', volatility: 0.033 },
-  { symbol: 'BRITANNIA', name: 'Britannia Industries', price: 4876.20, sector: 'FMCG', volatility: 0.018 },
-  { symbol: 'COALINDIA', name: 'Coal India', price: 398.75, sector: 'Mining', volatility: 0.026 },
-  { symbol: 'HINDALCO', name: 'Hindalco Industries', price: 543.90, sector: 'Metals', volatility: 0.031 },
-  { symbol: 'BPCL', name: 'Bharat Petroleum', price: 387.45, sector: 'Energy', volatility: 0.029 },
-  { symbol: 'GRASIM', name: 'Grasim Industries', price: 2134.60, sector: 'Cement', volatility: 0.025 },
-  { symbol: 'CIPLA', name: 'Cipla', price: 1567.80, sector: 'Pharma', volatility: 0.023 },
-  { symbol: 'DRREDDY', name: 'Dr Reddys Laboratories', price: 6234.70, sector: 'Pharma', volatility: 0.024 },
-  { symbol: 'EICHERMOT', name: 'Eicher Motors', price: 3789.45, sector: 'Automotive', volatility: 0.027 },
-  { symbol: 'HEROMOTOCO', name: 'Hero MotoCorp', price: 2987.60, sector: 'Automotive', volatility: 0.024 },
-  { symbol: 'DIVISLAB', name: 'Divis Laboratories', price: 4123.85, sector: 'Pharma', volatility: 0.026 },
-  { symbol: 'INDUSINDBK', name: 'IndusInd Bank', price: 1289.40, sector: 'Banking', volatility: 0.028 },
-  { symbol: 'UPL', name: 'UPL Limited', price: 567.30, sector: 'Chemicals', volatility: 0.030 },
-  { symbol: 'TATACONSUM', name: 'Tata Consumer Products', price: 934.75, sector: 'FMCG', volatility: 0.020 },
-  { symbol: 'ADANIPORTS', name: 'Adani Ports & SEZ', price: 789.90, sector: 'Infrastructure', volatility: 0.032 },
-  { symbol: 'APOLLOHOSP', name: 'Apollo Hospitals', price: 5678.45, sector: 'Healthcare', volatility: 0.022 },
-  { symbol: 'SHREECEM', name: 'Shree Cement', price: 28745.60, sector: 'Cement', volatility: 0.026 }
-];
+// API Functions
+const fetchSmartVestData = async (payload) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SMARTVEST_DATA}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (result.code !== "200") {
+      throw new Error(result.message || 'API request failed');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+};
+
+const mapApiDataToJourney = (apiData) => {
+  const { DailyPortfolioDetails, SmartVestGraphData } = apiData;
+  
+  return DailyPortfolioDetails.map((dayData, index) => {
+    const date = new Date(dayData.TransactionDate);
+    const graphData = SmartVestGraphData[index];
+    
+    // Map holdings
+    const holdings = dayData.Holdings.map(holding => ({
+      symbol: holding.Symbol || 'N/A',
+      quantity: holding.Quantity,
+      currentPrice: holding.CurrentPrice,
+      avgPrice: holding.BuyPrice,
+      value: holding.Quantity * holding.CurrentPrice
+    }));
+
+    // Map transactions to events
+    const events = (dayData.Transactions || []).map(transaction => ({
+      type: transaction.OrderType.toUpperCase(),
+      stock: transaction.Symbol,
+      quantity: transaction.Quantity,
+      price: transaction.Price.toFixed(2),
+      amount: (transaction.Quantity * transaction.Price).toFixed(2)
+    }));
+
+    // Calculate portfolio metrics
+    const portfolioValue = dayData.PortfolioValue;
+    const indexValue = graphData ? graphData.IndexValue : dayData.IndexPrice;
+    const portfolioNav = graphData ? graphData.PortfolioNav : 1;
+    const indexNav = graphData ? graphData.IndexNav : 1;
+    
+    // Calculate percentage changes based on NAV
+    const portfolioPercentChange = ((portfolioNav - 1) * 100);
+    const indexPercentChange = ((indexNav - 1) * 100);
+
+    return {
+      date: date.toISOString().split('T')[0],
+      day: index + 1,
+      events: events,
+      portfolio: {
+        cash: dayData.Cash,
+        totalValue: portfolioValue,
+        invested: portfolioValue - dayData.Cash,
+        pnl: dayData.CapitalGains,
+        percentChange: portfolioPercentChange,
+        niftyChange: indexPercentChange,
+        indexValue: indexValue,
+        holdings: holdings.sort((a, b) => b.value - a.value)
+      },
+      metrics: {
+        portfolioIRR: portfolioPercentChange * (365 / (index + 1)),
+        niftyIRR: indexPercentChange * (365 / (index + 1)),
+        dividends: dayData.DividendReceived,
+        capitalGains: dayData.CapitalGains,
+        sharpeRatio: portfolioPercentChange / Math.max(0.1, Math.sqrt(index + 1))
+      },
+      smartVestData: graphData
+    };
+  });
+};
 
 // Computed properties
 const isSetupComplete = computed(() => {
   const complete = journeySetup.value.startDate && 
          journeySetup.value.selectedProduct && 
-         journeySetup.value.amount >= 10000;
+         journeySetup.value.amount >= 10000 &&
+         journeySetup.value.numberOfStocks >= 5;
   
   if (complete && currentPhase.value === 'setup') {
     currentPhase.value = 'dice';
@@ -1125,6 +1338,13 @@ const currentDayEvents = computed(() => {
 
 const currentDayVersusNifty = computed(() => {
   const dayData = currentDay.value;
+  if (dayData?.smartVestData) {
+    // Use NAV data if available
+    const portfolioReturn = (dayData.smartVestData.PortfolioNav - 1) * 100;
+    const indexReturn = (dayData.smartVestData.IndexNav - 1) * 100;
+    return portfolioReturn - indexReturn;
+  }
+  // Fallback to existing calculation
   return dayData?.portfolio?.percentChange - dayData?.portfolio?.niftyChange || 0;
 });
 
@@ -1133,7 +1353,7 @@ const finalDay = computed(() => {
 });
 
 const finalTotal = computed(() => {
-  return finalDay.value?.portfolio?.totalValue || journeySetup.value.amount;
+  return finalDay.value?.smartVestData?.PortfolioValue || finalDay.value?.portfolio?.totalValue || journeySetup.value.amount;
 });
 
 const finalPerformance = computed(() => {
@@ -1141,7 +1361,15 @@ const finalPerformance = computed(() => {
 });
 
 const selectedStartingStocks = computed(() => {
-  return niftyStocks.slice(0, journeySetup.value.numberOfStocks);
+  // Get holdings from first day if available
+  if (journeyDays.value.length > 0 && journeyDays.value[0].portfolio?.holdings) {
+    return journeyDays.value[0].portfolio.holdings.map(holding => ({
+      symbol: holding.symbol,
+      price: holding.avgPrice || holding.currentPrice,
+      quantity: holding.quantity
+    }));
+  }
+  return [];
 });
 
 const visibleTimelineDays = computed(() => {
@@ -1458,17 +1686,59 @@ const rollDice = async () => {
   
   isRolling.value = true;
   
+  // Set all dice to rolling state immediately
   activeDice.value.forEach(dice => {
     dice.isRolling = true;
   });
   
+  // Show random values quickly while rolling
   const rollInterval = setInterval(() => {
     activeDice.value.forEach(dice => {
       dice.value = Math.floor(Math.random() * 6) + 1;
     });
-  }, 100);
+  }, 150); // Slower interval to see the rolling
   
   setTimeout(() => {
+    clearInterval(rollInterval);
+    
+    const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
+    const total = finalValues.reduce((sum, val) => sum + val, 0);
+    
+    activeDice.value.forEach((dice, index) => {
+      dice.value = finalValues[index];
+      dice.isRolling = false; // Stop rolling animation
+    });
+    
+    diceRolls.value.push(total);
+    isRolling.value = false;
+    
+    if (diceRolls.value.length === 1) {
+      startInvestmentJourney();
+    }
+  }, 2000); // Longer rolling duration to see the effect
+};
+
+const rollDiceFromJourney = async () => {
+  if (isRolling.value || diceRolls.value.length >= maxRolls.value) return;
+  
+  isRolling.value = true;
+  
+  // Stop current auto-progression
+  stopAutoProgression();
+  
+  // Set all dice to rolling state immediately
+  activeDice.value.forEach(dice => {
+    dice.isRolling = true;
+  });
+  
+  // Show random values quickly while rolling
+  const rollInterval = setInterval(() => {
+    activeDice.value.forEach(dice => {
+      dice.value = Math.floor(Math.random() * 6) + 1;
+    });
+  }, 150);
+  
+  setTimeout(async () => {
     clearInterval(rollInterval);
     
     const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
@@ -1482,54 +1752,64 @@ const rollDice = async () => {
     diceRolls.value.push(total);
     isRolling.value = false;
     
-    if (diceRolls.value.length === 1) {
-      startInvestmentJourney();
+    // Store current progress
+    const currentProgress = currentDayIndex.value;
+    
+    try {
+      // Regenerate journey data with extended days
+      await generateJourneyData();
+      
+      // Restore current progress or continue from where we left off
+      currentDayIndex.value = Math.min(currentProgress, journeyDays.value.length - 1);
+      
+      nextTick(() => {
+        initializeChart();
+        
+        // Restart auto-progression if it was enabled
+        if (autoProgressEnabled.value && currentDayIndex.value < journeyDays.value.length - 1) {
+          setTimeout(() => {
+            startAutoProgression();
+          }, 1000);
+        }
+      });
+    } catch (error) {
+      console.error('Error extending journey:', error);
+      alert('Failed to extend journey. Please try again.');
     }
-  }, 1200);
+  }, 2000);
 };
 
-const rollDiceFromJourney = async () => {
-  if (isRolling.value || diceRolls.value.length >= maxRolls.value) return;
-  
-  isRolling.value = true;
-  
-  const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
-  const total = finalValues.reduce((sum, val) => sum + val, 0);
-  
-  setTimeout(() => {
-    activeDice.value.forEach((dice, index) => {
-      dice.value = finalValues[index];
-    });
-    
-    diceRolls.value.push(total);
-    isRolling.value = false;
-    
-    generateJourneyData();
-    nextTick(() => {
-      initializeChart();
-    });
-  }, 800);
-};
-
-const startInvestmentJourney = () => {
+const startInvestmentJourney = async () => {
   isJourneyDataLoading.value = true;
-  generateJourneyData();
+  journeyError.value = null;
   
-  // Find first day with actual holdings
-  const firstDayWithHoldings = journeyDays.value.findIndex(day => 
-    day.portfolio?.holdings && day.portfolio.holdings.length > 0
-  );
-  currentDayIndex.value = Math.max(0, firstDayWithHoldings);
-  
-  currentPhase.value = 'journey';
-  
-  nextTick(() => {
-    setTimeout(() => {
-      initializeChart();
-      isJourneyDataLoading.value = false;
-      startAutoProgression();
-    }, 300);
-  });
+  try {
+    await generateJourneyData();
+    
+    if (journeyDays.value.length === 0) {
+      throw new Error('No data received from API');
+    }
+    
+    // Find first day with actual holdings
+    const firstDayWithHoldings = journeyDays.value.findIndex(day => 
+      day.portfolio?.holdings && day.portfolio.holdings.length > 0
+    );
+    currentDayIndex.value = Math.max(0, firstDayWithHoldings);
+    
+    currentPhase.value = 'journey';
+    
+    nextTick(() => {
+      setTimeout(() => {
+        initializeChart();
+        isJourneyDataLoading.value = false;
+        startAutoProgression();
+      }, 300);
+    });
+  } catch (error) {
+    console.error('Error starting investment journey:', error);
+    isJourneyDataLoading.value = false;
+    journeyError.value = error.message || 'Failed to load investment data';
+  }
 };
 
 const startAutoProgression = () => {
@@ -1553,199 +1833,37 @@ const stopAutoProgression = () => {
   }
 };
 
-const generateJourneyData = () => {
-  const startDate = new Date(journeySetup.value.startDate);
-  const days = totalDays.value;
-  const numStocks = journeySetup.value.numberOfStocks;
-  
-  journeyDays.value = [];
-  
-  let currentHoldings = {};
-  let cashBalance = journeySetup.value.amount;
-  let totalDividends = 0;
-  let totalCapitalGains = 0;
-  
-  const selectedStocks = niftyStocks.slice(0, numStocks);
-  
-  // Initialize holdings with actual stock purchases
-  const amountPerStock = journeySetup.value.amount / numStocks;
-  selectedStocks.forEach(stock => {
-    const initialPriceVariation = 0.95 + Math.random() * 0.1; // ±5% variation
-    const currentPrice = stock.price * initialPriceVariation;
-    const quantity = Math.floor(amountPerStock / currentPrice);
-    const actualCost = quantity * currentPrice;
-    
-    currentHoldings[stock.symbol] = {
-      symbol: stock.symbol,
-      quantity: quantity,
-      avgPrice: currentPrice,
-      currentPrice: currentPrice,
-      sector: stock.sector,
-      volatility: stock.volatility
+const generateJourneyData = async () => {
+  try {
+    // Prepare API payload
+    const payload = {
+      portfolioId: "0",
+      Product: journeySetup.value.selectedProduct,
+      investment: journeySetup.value.amount.toString(),
+      DaysToProceed: totalDays.value.toString(),
+      numberOfStocks: journeySetup.value.numberOfStocks.toString(),
+      Startdate: journeySetup.value.startDate
     };
+
+    console.log('API Payload:', payload);
+
+    // Fetch data from API
+    const apiData = await fetchSmartVestData(payload);
     
-    cashBalance -= actualCost;
-  });
-  
-  // Generate market trend (bull/bear/sideways)
-  const marketTrend = Math.random() > 0.5 ? 'bull' : Math.random() > 0.5 ? 'bear' : 'sideways';
-  const trendMultiplier = marketTrend === 'bull' ? 1.2 : marketTrend === 'bear' ? 0.8 : 1.0;
-  
-  for (let i = 0; i < days; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
+    // Map API data to journey structure
+    journeyDays.value = mapApiDataToJourney(apiData);
     
-    // More realistic price movements
-    Object.keys(currentHoldings).forEach(stockSymbol => {
-      const holding = currentHoldings[stockSymbol];
-      const baseVolatility = holding.volatility;
-      
-      // Add market correlation and individual stock movement
-      const marketMovement = (Math.random() - 0.45) * 0.02 * trendMultiplier;
-      const stockSpecificMovement = (Math.random() - 0.5) * baseVolatility;
-      const totalChange = marketMovement + stockSpecificMovement;
-      
-      // Prevent extreme movements
-      const clampedChange = Math.max(-0.05, Math.min(0.05, totalChange));
-      
-      holding.currentPrice *= (1 + clampedChange);
-      holding.dayChange = clampedChange * 100;
-      
-      // Ensure prices don't go negative or too low
-      holding.currentPrice = Math.max(holding.currentPrice, 1);
-    });
+    console.log('Journey Data Loaded:', journeyDays.value);
     
-    let portfolioValue = cashBalance;
-    const holdings = [];
-    
-    Object.values(currentHoldings).forEach(holding => {
-      if (holding.quantity > 0) {
-        const value = holding.quantity * holding.currentPrice;
-        portfolioValue += value;
-        holdings.push({
-          ...holding,
-          value: value
-        });
-      }
-    });
-    
-    const percentChange = ((portfolioValue - journeySetup.value.amount) / journeySetup.value.amount) * 100;
-    
-    // More realistic NIFTY movement correlated with portfolio
-    const niftyBaseChange = percentChange * (0.7 + Math.random() * 0.6); // 70-130% correlation
-    const niftyNoise = (Math.random() - 0.5) * 2; // ±1% noise
-    const niftyChange = niftyBaseChange + niftyNoise;
-    
-    const events = [];
-    
-    // More realistic trading activity (increased probability)
-    if (i > 0 && Math.random() > 0.4 && cashBalance > 5000) { // 60% chance of trading
-      const eventType = Math.random() > 0.6 ? 'BUY' : 'SELL'; // Prefer buying slightly
-      const stock = selectedStocks[Math.floor(Math.random() * numStocks)];
-      const holding = currentHoldings[stock.symbol];
-      
-      if (eventType === 'BUY' && cashBalance > holding.currentPrice * 5) {
-        const quantity = Math.floor(Math.random() * 25) + 5; // 5-30 shares
-        const totalCost = quantity * holding.currentPrice;
-        
-        if (totalCost <= cashBalance) {
-          events.push({
-            type: 'BUY',
-            stock: stock.symbol,
-            quantity: quantity,
-            price: holding.currentPrice.toFixed(2)
-          });
-          
-          const prevQty = holding.quantity;
-          holding.avgPrice = ((holding.avgPrice * prevQty) + totalCost) / (prevQty + quantity);
-          holding.quantity += quantity;
-          cashBalance -= totalCost;
-        }
-      } else if (eventType === 'SELL' && holding.quantity > 5) {
-        const maxSell = Math.min(holding.quantity, Math.floor(holding.quantity * 0.3)); // Max 30% of holdings
-        const quantity = Math.floor(Math.random() * maxSell) + 1;
-        const totalValue = quantity * holding.currentPrice;
-        const capitalGain = (holding.currentPrice - holding.avgPrice) * quantity;
-        
-        events.push({
-          type: 'SELL',
-          stock: stock.symbol,
-          quantity: quantity,
-          price: holding.currentPrice.toFixed(2)
-        });
-        
-        holding.quantity -= quantity;
-        cashBalance += totalValue;
-        totalCapitalGains += capitalGain;
-      }
-    }
-    
-    // Ensure early trading activity (guaranteed events in first 3 days)
-    if (i >= 1 && i <= 3 && events.length === 0) {
-      const stock = selectedStocks[Math.floor(Math.random() * Math.min(3, numStocks))];
-      const holding = currentHoldings[stock.symbol];
-      const quantity = Math.floor(Math.random() * 15) + 5; // 5-20 shares
-      const totalCost = quantity * holding.currentPrice;
-      
-      if (totalCost <= cashBalance * 0.2) { // Use max 20% of cash
-        events.push({
-          type: 'BUY',
-          stock: stock.symbol,
-          quantity: quantity,
-          price: holding.currentPrice.toFixed(2)
-        });
-        
-        const prevQty = holding.quantity;
-        holding.avgPrice = ((holding.avgPrice * prevQty) + totalCost) / (prevQty + quantity);
-        holding.quantity += quantity;
-        cashBalance -= totalCost;
-      }
-    }
-    
-    // Add dividend events occasionally
-    if (Math.random() > 0.85 && holdings.length > 0) { // 15% chance
-      const randomHolding = holdings[Math.floor(Math.random() * holdings.length)];
-      const dividendYield = 0.02; // 2% annual yield
-      const dividend = randomHolding.value * (dividendYield / 365); // Daily dividend
-      totalDividends += dividend;
-      cashBalance += dividend;
-      
-      events.push({
-        type: 'DIVIDEND',
-        stock: randomHolding.symbol,
-        amount: dividend.toFixed(2)
-      });
-    }
-    
-    const day = {
-      date: date.toISOString().split('T')[0],
-      day: i + 1,
-      events: events,
-      portfolio: {
-        cash: cashBalance,
-        totalValue: portfolioValue,
-        invested: portfolioValue - cashBalance,
-        pnl: portfolioValue - journeySetup.value.amount,
-        percentChange: percentChange,
-        niftyChange: niftyChange,
-        holdings: holdings.sort((a, b) => b.value - a.value) // Sort by value desc
-      },
-      metrics: {
-        portfolioIRR: percentChange * (365 / (i + 1)),
-        niftyIRR: niftyChange * (365 / (i + 1)),
-        dividends: totalDividends,
-        capitalGains: totalCapitalGains,
-        sharpeRatio: percentChange / Math.max(0.1, Math.sqrt(i + 1)) // Simplified Sharpe ratio
-      }
-    };
-    
-    journeyDays.value.push(day);
+  } catch (error) {
+    console.error('Error generating journey data:', error);
+    throw error;
   }
 };
 
 const initializeChart = () => {
   const ctx = performanceChart.value?.getContext('2d');
-  if (!ctx) return;
+  if (!ctx || !journeyDays.value.length) return;
   
   const canvas = performanceChart.value;
   const width = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
@@ -1754,8 +1872,19 @@ const initializeChart = () => {
   canvas.style.height = canvas.offsetHeight + 'px';
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   
-  const portfolioData = journeyDays.value.map(day => day.portfolio.percentChange);
-  const niftyData = journeyDays.value.map(day => day.portfolio.niftyChange);
+  // Use SmartVestGraphData for chart - NAV values
+  const portfolioNavData = journeyDays.value
+    .filter(day => day.smartVestData)
+    .map(day => (day.smartVestData.PortfolioNav - 1) * 100);
+  const indexNavData = journeyDays.value
+    .filter(day => day.smartVestData)
+    .map(day => (day.smartVestData.IndexNav - 1) * 100);
+  
+  // Fallback to portfolio percentage if no smartVestData
+  const portfolioData = portfolioNavData.length > 0 ? portfolioNavData : 
+    journeyDays.value.map(day => day.portfolio.percentChange);
+  const niftyData = indexNavData.length > 0 ? indexNavData : 
+    journeyDays.value.map(day => day.portfolio.niftyChange);
   
   ctx.clearRect(0, 0, width, height);
   
@@ -1795,12 +1924,14 @@ const initializeChart = () => {
   
   // Draw lines with enhanced styling
   const drawLine = (data, color, shadowColor, lineWidth = 2) => {
+    if (data.length === 0) return;
+    
     // Draw shadow
     ctx.strokeStyle = shadowColor;
     ctx.lineWidth = lineWidth + 2;
     ctx.beginPath();
     data.forEach((value, index) => {
-      const x = padding.left + (index * graphWidth / (data.length - 1));
+      const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
       const y = padding.top + ((maxValue - value) / range * graphHeight) + 1;
       if (index === 0) {
         ctx.moveTo(x, y);
@@ -1815,7 +1946,7 @@ const initializeChart = () => {
     ctx.lineWidth = lineWidth;
     ctx.beginPath();
     data.forEach((value, index) => {
-      const x = padding.left + (index * graphWidth / (data.length - 1));
+      const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
       const y = padding.top + ((maxValue - value) / range * graphHeight);
       if (index === 0) {
         ctx.moveTo(x, y);
@@ -1834,7 +1965,7 @@ const initializeChart = () => {
     ctx.fillStyle = gradient;
     ctx.beginPath();
     data.forEach((value, index) => {
-      const x = padding.left + (index * graphWidth / (data.length - 1));
+      const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
       const y = padding.top + ((maxValue - value) / range * graphHeight);
       if (index === 0) {
         ctx.moveTo(x, y);
@@ -1867,7 +1998,7 @@ const startNewJourney = () => {
   currentPhase.value = 'setup';
   journeySetup.value = {
     startDate: '',
-    selectedProduct: '',
+    selectedProduct: 'BG',
     amount: 100000,
     numberOfStocks: 10
   };
@@ -1880,6 +2011,7 @@ const startNewJourney = () => {
   finalStockPage.value = 0;
   autoProgressEnabled.value = true;
   isJourneyDataLoading.value = false;
+  journeyError.value = null;
   showFinalResults.value = false;
   dayTooltip.value = {
     visible: false,
@@ -1890,6 +2022,13 @@ const startNewJourney = () => {
     width: 240,
     height: 300
   };
+};
+
+const retryJourney = () => {
+  journeyError.value = null;
+  if (diceRolls.value.length > 0) {
+    startInvestmentJourney();
+  }
 };
 
 const endJourney = () => {
@@ -2052,7 +2191,7 @@ html {
 }
 
 @media (max-width: 768px) {
-  .performance-toolbar {
+  .performance-toolbar { 
     flex-wrap: wrap;
     gap: 0.6rem;
   }
@@ -2122,7 +2261,7 @@ html {
 }
 
 .config-dice-control {
-  background: rgba(255, 193, 7, 0.15);
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 235, 59, 0.1));
   border: 1px solid rgba(255, 193, 7, 0.4);
   border-radius: 0.6rem;
   padding: 0.6rem;
@@ -2132,16 +2271,140 @@ html {
   transition: all 0.3s ease;
   grid-column: 1 / -1;
   justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .config-dice-control:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0.2rem 0.6rem rgba(255, 193, 7, 0.2);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.25), rgba(255, 235, 59, 0.15));
 }
 
-.dice-icon-mini {
-  font-size: 0.9rem;
-  color: #f57c00;
+/* Enhanced Dice Icon with 3D rolling animation */
+.dice-icon-enhanced {
+  position: relative;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  perspective: 100px;
+}
+
+.dice-icon-enhanced:hover {
+  transform: scale(1.1);
+}
+
+.dice-icon-enhanced.rolling {
+  animation: diceRollShake 0.1s infinite ease-in-out;
+}
+
+@keyframes diceRollShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(2deg) scale(1.05); }
+  75% { transform: rotate(-2deg) scale(0.95); }
+}
+
+.dice-cube-mini {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  animation: diceFloat 3s infinite ease-in-out;
+}
+
+.dice-icon-enhanced.rolling .dice-cube-mini {
+  animation: diceRoll3D 0.2s infinite linear;
+}
+
+@keyframes diceFloat {
+  0%, 100% { transform: rotateX(15deg) rotateY(15deg) translateZ(0); }
+  50% { transform: rotateX(25deg) rotateY(25deg) translateZ(2px); }
+}
+
+@keyframes diceRoll3D {
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  16% { transform: rotateX(60deg) rotateY(60deg) rotateZ(60deg); }
+  33% { transform: rotateX(120deg) rotateY(120deg) rotateZ(120deg); }
+  50% { transform: rotateX(180deg) rotateY(180deg) rotateZ(180deg); }
+  66% { transform: rotateX(240deg) rotateY(240deg) rotateZ(240deg); }
+  83% { transform: rotateX(300deg) rotateY(300deg) rotateZ(300deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+}
+
+.dice-face-mini {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(145deg, #ff9800, #ffc107, #ff8f00);
+  border: 2px solid #ff6f00;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 15px rgba(255, 152, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.dice-face-mini .dots {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.dice-face-mini .dot {
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.dice-face-mini .dot.center { grid-area: 2 / 2; }
+.dice-face-mini .dot.top-left { grid-area: 1 / 1; }
+.dice-face-mini .dot.top-right { grid-area: 1 / 3; }
+.dice-face-mini .dot.center-left { grid-area: 2 / 1; }
+.dice-face-mini .dot.center-right { grid-area: 2 / 3; }
+.dice-face-mini .dot.bottom-left { grid-area: 3 / 1; }
+.dice-face-mini .dot.bottom-right { grid-area: 3 / 3; }
+
+.dice-face-mini.front { transform: translateZ(22px); }
+.dice-face-mini.back { transform: rotateY(180deg) translateZ(22px); }
+.dice-face-mini.right { transform: rotateY(90deg) translateZ(22px); }
+.dice-face-mini.left { transform: rotateY(-90deg) translateZ(22px); }
+.dice-face-mini.top { transform: rotateX(90deg) translateZ(22px); }
+.dice-face-mini.bottom { transform: rotateX(-90deg) translateZ(22px); }
+
+.dice-sparkles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.dice-icon-enhanced.rolling .dice-sparkles .sparkle-mini {
+  animation: sparkleFloat 1s ease-out infinite;
+}
+
+.sparkle-mini {
+  position: absolute;
+  font-size: 0.8rem;
+  opacity: 0;
+}
+
+@keyframes sparkleFloat {
+  0% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+  100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
 }
 
 .dice-results-mini {
@@ -2156,50 +2419,108 @@ html {
 }
 
 .roll-item-mini {
-  background: rgba(255, 193, 7, 0.3);
-  border: 1px solid rgba(255, 193, 7, 0.5);
-  border-radius: 0.2rem;
-  padding: 0.1rem 0.3rem;
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #f57c00;
-  min-width: 16px;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 152, 0, 0.7));
+  border: 2px solid rgba(255, 193, 7, 0.9);
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #ff6f00;
+  min-width: 30px;
   text-align: center;
+  box-shadow: 
+    0 3px 8px rgba(245, 124, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  animation: rollItemPulse 2s infinite ease-in-out;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.roll-item-mini::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transition: left 0.5s ease;
+}
+
+.roll-item-mini:hover::before {
+  left: 100%;
+}
+
+@keyframes rollItemPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 
+      0 3px 8px rgba(245, 124, 0, 0.5),
+      inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 
+      0 5px 15px rgba(245, 124, 0, 0.8),
+      inset 0 3px 6px rgba(255, 255, 255, 0.6);
+  }
 }
 
 .total-days-mini {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #ef6c00;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 0.2rem;
-  padding: 0.1rem 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #d84315;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 243, 224, 0.9));
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  box-shadow: 
+    0 3px 8px rgba(239, 108, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(239, 108, 0, 0.4);
+  animation: totalDaysMegaGlow 1.8s infinite ease-in-out;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
-.mini-roll-btn {
-  background: linear-gradient(135deg, #FF9800, #FFC107);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0.1rem 0.3rem rgba(255, 152, 0, 0.3);
-  font-size: 0.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.total-days-mini::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #ff9800, #ffc107, #ff8f00, #ff9800);
+  background-size: 400% 400%;
+  border-radius: 0.5rem;
+  z-index: -1;
+  animation: totalDaysBorder 3s infinite ease-in-out;
+  filter: blur(1px);
 }
 
-.mini-roll-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 0.2rem 0.5rem rgba(255, 152, 0, 0.4);
+@keyframes totalDaysMegaGlow {
+  0%, 100% { 
+    box-shadow: 
+      0 3px 8px rgba(239, 108, 0, 0.5),
+      inset 0 2px 4px rgba(255, 255, 255, 0.6);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 
+      0 5px 15px rgba(239, 108, 0, 0.8),
+      inset 0 3px 6px rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+  }
 }
 
-.mini-roll-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+@keyframes totalDaysBorder {
+  0%, 100% { 
+    background-position: 0% 50%;
+  }
+  50% { 
+    background-position: 100% 50%;
+  }
 }
 
 /* NIFTY Comparison Panel */
@@ -2284,13 +2605,17 @@ html {
 .performance-toolbar {
   display: flex;
   gap: 0.8rem;
-  background: linear-gradient(85deg, rgba(224, 116, 116, 0.98) 0%, rgba(248, 250, 252, 0.95) 50%, rgba(2, 64, 118, 0.92) 100%);
+  background: linear-gradient(135deg, 
+    rgba(240, 248, 255, 0.95) 0%, 
+    rgba(219, 234, 254, 0.9) 50%, 
+    rgba(191, 219, 254, 0.85) 100%
+  );
   border-radius: 1rem;
   padding: 0.8rem;
   box-shadow: 
-    0 0.3rem 1rem rgba(25, 118, 210, 0.2),
+    0 0.3rem 1rem rgba(59, 130, 246, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 2px solid rgba(25, 118, 210, 0.2);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   backdrop-filter: blur(15px);
   overflow-x: auto;
   flex-wrap: wrap;
@@ -2305,7 +2630,7 @@ html {
   }
 }
 
-/* Three Panel Layout in Right Pane */
+/* Three Panel Layout in Right Pane - Enhanced Colors */
 .three-panel-layout-right {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -2338,6 +2663,198 @@ html {
     min-height: auto;
     max-height: none;
   }
+}
+
+/* Enhanced Portfolio Panel Styles with Better Colors */
+.portfolio-panel {
+  border-radius: 1rem;
+  padding: 0.8rem;
+  box-shadow: 
+    0 0.4rem 1.2rem rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(20px);
+  border: 2px solid;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Enhanced background patterns for each panel */
+.portfolio-bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+.start-pattern {
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(255, 193, 7, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 152, 0, 0.2) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 40%, rgba(255, 235, 59, 0.1) 50%, transparent 60%);
+}
+
+.current-pattern {
+  background: 
+    radial-gradient(circle at 30% 70%, rgba(33, 150, 243, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(25, 118, 210, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, transparent 40%, rgba(100, 181, 246, 0.1) 50%, transparent 60%);
+}
+
+.final-pattern {
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(76, 175, 80, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(129, 199, 132, 0.2) 0%, transparent 50%),
+    linear-gradient(225deg, transparent 40%, rgba(165, 214, 167, 0.1) 50%, transparent 60%);
+}
+
+/* Adjust panel size for right pane */
+.three-panel-layout-right .portfolio-panel {
+  min-height: 140px;
+  padding: 0.6rem;
+}
+
+@media (max-width: 1400px) {
+  .three-panel-layout-right .portfolio-panel {
+    min-height: 120px;
+    padding: 0.5rem;
+  }
+}
+
+.portfolio-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.portfolio-panel:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 0.8rem 2rem rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Lighter, more harmonious colors matching the blue background */
+.start-portfolio {
+  background: linear-gradient(135deg, 
+    rgba(255, 248, 225, 0.95) 0%, 
+    rgba(255, 236, 179, 0.9) 50%, 
+    rgba(255, 224, 130, 0.85) 100%
+  );
+  border-color: rgba(255, 193, 7, 0.4);
+  color: #333;
+  box-shadow: 
+    0 0.4rem 1.2rem rgba(255, 193, 7, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.current-snapshot {
+  background: linear-gradient(135deg, 
+    rgba(240, 248, 255, 0.95) 0%, 
+    rgba(219, 234, 254, 0.9) 50%, 
+    rgba(191, 219, 254, 0.85) 100%
+  );
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #1e40af;
+  box-shadow: 
+    0 0.4rem 1.2rem rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.final-portfolio {
+  background: linear-gradient(135deg, 
+    rgba(240, 253, 244, 0.95) 0%, 
+    rgba(220, 252, 231, 0.9) 50%, 
+    rgba(187, 247, 208, 0.85) 100%
+  );
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #166534;
+  box-shadow: 
+    0 0.4rem 1.2rem rgba(34, 197, 94, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.panel-header {
+  text-align: center;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+}
+
+/* Adjust header for right pane */
+.three-panel-layout-right .panel-header {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+}
+
+.panel-title {
+  font-size: 0.9rem;
+  font-weight: 900;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Better text colors for each panel */
+.start-portfolio .panel-title {
+  color: #b45309;
+}
+
+.current-snapshot .panel-title {
+  color: #1e40af;
+}
+
+.final-portfolio .panel-title {
+  color: #166534;
+}
+
+/* Adjust title size for right pane */
+.three-panel-layout-right .panel-title {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+.panel-date, .panel-subtitle {
+  font-size: 0.6rem;
+  margin-top: 0.3rem;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+/* Adjust subtitle for right pane */
+.three-panel-layout-right .panel-date,
+.three-panel-layout-right .panel-subtitle {
+  font-size: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.panel-content {
+  font-size: 0.65rem;
+  line-height: 1.3;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 3;
 }
 
 /* Performance Metric Card Styles */
@@ -2504,6 +3021,202 @@ html {
   color: #1976d2;
 }
 
+/* No Data Message */
+.no-data-message {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 0.8rem;
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.6);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-data-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.6;
+}
+
+.no-data-text {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* Panel Content - Compact */
+.stock-holdings, .current-holdings-list, .final-holdings-list {
+  margin-bottom: 0.4rem;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 120px;
+}
+
+.stock-line, .holding-line, .final-stock-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+  font-size: 0.55rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+}
+
+.holding-line-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.15rem;
+  font-weight: 600;
+  font-size: 0.5rem;
+  padding: 0.1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+}
+
+.stock-symbol, .holding-symbol, .holding-symbol-compact {
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 0.6rem;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
+}
+
+.stock-price, .holding-quantity, .stock-quantity, .holding-quantity-compact {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.5rem;
+  text-align: center;
+  min-width: 25px;
+  white-space: nowrap;
+}
+
+.stock-value, .holding-value, .holding-value-compact {
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.9);
+  font-size: 0.55rem;
+  text-align: right;
+  min-width: 45px;
+  white-space: nowrap;
+}
+
+/* Pagination Controls - Compact */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.3rem 0;
+  padding: 0.2rem;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 0.3rem;
+}
+
+.page-btn {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.8);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.3);
+  transform: scale(1.1);
+}
+
+.page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-indicator {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.8);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.total-line, .performance-indicator, .final-total-line {
+  text-align: center;
+  padding: 0.3rem;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0.3rem;
+  font-weight: 900;
+  font-size: 0.65rem;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.perf-text.positive, .final-perf.positive {
+  color: #15803d;
+}
+
+.perf-text.negative, .final-perf.negative {
+  color: #dc2626;
+}
+
+.journey-progress {
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0.5rem;
+}
+
+.progress-text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.progress-stats {
+  margin-bottom: 0.6rem;
+  font-size: 0.55rem;
+  opacity: 0.9;
+}
+
+.end-journey-btn {
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.3rem;
+  font-weight: 700;
+  font-size: 0.55rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.end-journey-btn:hover {
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
 /* Combined Setup + Dice Phase */
 .combined-setup-phase {
   max-width: min(900px, 95vw);
@@ -2527,11 +3240,6 @@ html {
   margin-bottom: 0.4rem;
   animation: iconFloat 2s infinite ease-in-out;
   filter: drop-shadow(0 0 10px rgba(25, 118, 210, 0.5));
-}
-
-@keyframes iconFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-5px) scale(1.02); }
 }
 
 .setup-title {
@@ -2560,368 +3268,830 @@ html {
   overflow: hidden;
 }
 
-/* Desktop layout */
+/* Desktop layout - Updated for better space utilization */
 @media (min-width: 900px) {
   .combined-content {
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: 1fr;
+    max-width: 1200px;
+    margin: 0 auto;
   }
 }
 
-/* Journey Phase Layout - Updated Layout */
-.journey-phase {
-  max-width: 100%;
-  margin: 0 10px;
-  flex: 1;
+/* Enhanced Integrated Setup Layout */
+.integrated-setup-layout {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1.2rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.8rem 2rem rgba(25, 118, 210, 0.2);
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  backdrop-filter: blur(15px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.journey-content {
+/* Top Form Grid */
+.setup-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .setup-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Middle Section */
+.middle-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .middle-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.stocks-section, .products-section {
+  background: rgba(227, 242, 253, 0.3);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(25, 118, 210, 0.2);
+}
+
+/* Compact Product Selector */
+.product-selector-compact {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  height: 100%;
 }
 
-/* Main Content Panel - Now for timeline and below */
-.main-content-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-height: 0;
-  width: 100%;
-
-}
-
-/* Remove old three-panel-layout styles since tiles are now in right pane */
-
-/* Portfolio Panel Styles */
-.portfolio-panel {
-  border-radius: 1rem;
+.product-card-compact {
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  border-radius: 0.8rem;
   padding: 0.8rem;
-  box-shadow: 
-    0 0.6rem 1.5rem rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(15px);
-  border: 2px solid;
-  transition: all 0.4s ease;
-  position: relative;
-  overflow: hidden;
-  min-height: 150px;
+  cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
 }
 
-/* Adjust panel size for right pane */
-.three-panel-layout-right .portfolio-panel {
-  min-height: 140px;
-  padding: 0.6rem;
+.product-card-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(25, 118, 210, 0.3);
 }
 
-@media (max-width: 1400px) {
-  .three-panel-layout-right .portfolio-panel {
-    min-height: 120px;
-    padding: 0.5rem;
+.product-card-compact.active {
+  border-color: #1976d2;
+  background: rgba(227, 242, 253, 0.9);
+  box-shadow: 0 0.3rem 0.8rem rgba(25, 118, 210, 0.2);
+}
+
+.product-icon-compact {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name-compact {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0d47a1;
+  margin-bottom: 0.3rem;
+}
+
+/* Compact Stocks Selector */
+.stocks-selector-compact {
+  padding: 0.8rem;
+  background: rgba(227, 242, 253, 0.3);
+  border-radius: 0.8rem;
+  border: 1px solid rgba(25, 118, 210, 0.2);
+}
+
+/* Enhanced Dice Gaming Section */
+.dice-gaming-section {
+  background: linear-gradient(135deg, 
+    rgba(25, 118, 210, 0.08) 0%, 
+    rgba(33, 150, 243, 0.05) 50%, 
+    rgba(25, 118, 210, 0.08) 100%
+  );
+  border-radius: 1.2rem;
+  padding: 1.5rem;
+  border: 2px solid rgba(25, 118, 210, 0.2);
+  box-shadow: 
+    0 0.8rem 2rem rgba(25, 118, 210, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dice-header-enhanced {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.dice-title-main {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #0d47a1;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+}
+
+.dice-subtitle {
+  font-size: 0.9rem;
+  color: #1565c0;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.dice-progress-bar {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.progress-label {
+  font-size: 0.8rem;
+  color: #1565c0;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(25, 118, 210, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill-dice {
+  height: 100%;
+  background: linear-gradient(90deg, #1976d2, #42a5f5);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(25, 118, 210, 0.4);
+}
+
+/* Main Dice Area Layout */
+.dice-main-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .dice-main-area {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
 
-.portfolio-panel::before {
-  content: '';
+/* Enhanced Dice Arena */
+.dice-arena-enhanced {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.dice-container-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  perspective: 1000px;
+  position: relative;
+  padding: 2rem;
+  background: radial-gradient(circle, rgba(25, 118, 210, 0.15), rgba(33, 150, 243, 0.08), transparent);
+  border-radius: 1.2rem;
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  box-shadow: 
+    0 0 40px rgba(25, 118, 210, 0.4),
+    inset 0 2px 8px rgba(255, 255, 255, 0.2);
+  animation: diceContainerPulse 3s infinite ease-in-out;
+  transition: all 0.3s ease;
+  min-height: 140px;
+}
+
+.dice-container-main.rolling {
+  background: radial-gradient(circle, rgba(255, 152, 0, 0.25), rgba(255, 193, 7, 0.15), transparent);
+  border-color: rgba(255, 152, 0, 0.5);
+  box-shadow: 
+    0 0 60px rgba(255, 152, 0, 0.6),
+    inset 0 4px 12px rgba(255, 255, 255, 0.3);
+  animation: diceContainerRolling 0.3s infinite ease-in-out;
+}
+
+.dice-cube-enhanced {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  filter: drop-shadow(0 0 20px rgba(25, 118, 210, 0.6));
+  animation: diceFloatIdle 3s infinite ease-in-out;
+}
+
+.dice-cube-enhanced.rolling {
+  animation: rollDiceVisible 0.2s infinite linear;
+}
+
+.dice-face-enhanced {
   position: absolute;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(145deg, #1976d2, #42a5f5, #1976d2);
+  border: 3px solid #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 6px 20px rgba(25, 118, 210, 0.4),
+    inset 0 3px 6px rgba(255, 255, 255, 0.3);
+}
+
+.dice-face-enhanced .dots {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+}
+
+.dice-face-enhanced .dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dice-face-enhanced .dot.center { grid-area: 2 / 2; }
+.dice-face-enhanced .dot.top-left { grid-area: 1 / 1; }
+.dice-face-enhanced .dot.top-right { grid-area: 1 / 3; }
+.dice-face-enhanced .dot.center-left { grid-area: 2 / 1; }
+.dice-face-enhanced .dot.center-right { grid-area: 2 / 3; }
+.dice-face-enhanced .dot.bottom-left { grid-area: 3 / 1; }
+.dice-face-enhanced .dot.bottom-right { grid-area: 3 / 3; }
+
+.dice-face-enhanced.front { transform: translateZ(30px); }
+.dice-face-enhanced.back { transform: rotateY(180deg) translateZ(30px); }
+.dice-face-enhanced.right { transform: rotateY(90deg) translateZ(30px); }
+.dice-face-enhanced.left { transform: rotateY(-90deg) translateZ(30px); }
+.dice-face-enhanced.top { transform: rotateX(90deg) translateZ(30px); }
+.dice-face-enhanced.bottom { transform: rotateX(-90deg) translateZ(30px); }
+
+.sparkle-effects-main {
+  position: absolute;
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 40%);
   pointer-events: none;
 }
 
-.portfolio-panel:hover {
-  transform: translateY(-4px) scale(1.02);
+.sparkle-effects-main.active .sparkle-main {
+  animation: sparkleFloat 1.2s ease-out infinite;
+}
+
+.sparkle-main {
+  position: absolute;
+  font-size: 1rem;
+  opacity: 0;
+}
+
+/* Enhanced Roll Button */
+.roll-btn-enhanced {
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.3s ease;
   box-shadow: 
-    0 1rem 2.5rem rgba(0, 0, 0, 0.25),
+    0 0.4rem 1.2rem rgba(25, 118, 210, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.roll-btn-enhanced:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 0.8rem 2rem rgba(25, 118, 210, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #1565c0, #1976d2);
 }
 
-.start-portfolio {
-  background: linear-gradient(135deg, rgba(255, 152, 0, 0.95), rgba(255, 193, 7, 0.85));
-  border-color: #FF9800;
-  color: white;
-  box-shadow: 
-    0 0.6rem 1.5rem rgba(255, 152, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.roll-btn-enhanced:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.current-snapshot {
-  background: linear-gradient(135deg, rgba(63, 81, 181, 0.95), rgba(92, 107, 192, 0.85));
-  border-color: #3F51B5;
-  color: white;
-  box-shadow: 
-    0 0.6rem 1.5rem rgba(63, 81, 181, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.roll-btn-enhanced.rolling {
+  background: linear-gradient(135deg, #ff9800, #ffc107);
+  animation: rollButtonShake 0.3s infinite ease-in-out;
 }
 
-.final-portfolio {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(129, 199, 132, 0.85));
-  border-color: #4CAF50;
-  color: white;
-  box-shadow: 
-    0 0.6rem 1.5rem rgba(76, 175, 80, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.roll-icon-main {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.panel-header {
+.roll-text-main {
+  font-size: 0.9rem;
+}
+
+/* Results Area */
+.dice-results-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.results-display-enhanced {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  box-shadow: 0 0.4rem 1rem rgba(25, 118, 210, 0.15);
+  border: 2px solid rgba(25, 118, 210, 0.2);
+}
+
+.results-header h4 {
+  color: #0d47a1;
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin: 0 0 1rem 0;
   text-align: center;
-  margin-bottom: 0.8rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-  position: relative;
-  z-index: 2;
+}
+
+.results-grid-enhanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.result-item-enhanced {
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(33, 150, 243, 0.05));
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  border-radius: 0.8rem;
+  padding: 0.8rem;
+  text-align: center;
+  min-width: 80px;
+  transition: all 0.3s ease;
+}
+
+.result-item-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.4rem 0.8rem rgba(25, 118, 210, 0.2);
+}
+
+.result-number {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #1976d2;
+  margin-bottom: 0.3rem;
+}
+
+.result-label {
+  font-size: 0.7rem;
+  color: #1565c0;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.total-summary {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(33, 150, 243, 0.05));
+  border-radius: 0.8rem;
+  border: 2px solid rgba(25, 118, 210, 0.3);
+}
+
+.total-label {
+  font-size: 0.8rem;
+  color: #1565c0;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.total-value-enhanced {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #0d47a1;
+  text-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+}
+
+/* Instructions */
+.dice-instructions {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 0.4rem 1rem rgba(25, 118, 210, 0.15);
+  border: 2px solid rgba(25, 118, 210, 0.2);
+}
+
+.instruction-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.dice-instructions h4 {
+  color: #0d47a1;
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin: 0 0 0.8rem 0;
+}
+
+.dice-instructions p {
+  color: #1565c0;
+  font-size: 0.9rem;
+  margin-bottom: 1.2rem;
+  line-height: 1.4;
+}
+
+.dice-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.5rem;
+  background: rgba(227, 242, 253, 0.5);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  color: #1565c0;
+  font-weight: 600;
+}
+
+.info-icon {
+  font-size: 1rem;
+}
+
+/* Journey Preview */
+.journey-preview {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  box-shadow: 0 0.4rem 1rem rgba(25, 118, 210, 0.15);
+  border: 2px solid rgba(25, 118, 210, 0.2);
+}
+
+.preview-header h4 {
+  color: #0d47a1;
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.preview-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem;
+  background: rgba(227, 242, 253, 0.5);
+  border-radius: 0.8rem;
+  border: 1px solid rgba(25, 118, 210, 0.2);
+}
+
+.preview-icon {
+  font-size: 1.2rem;
   flex-shrink: 0;
 }
 
-/* Adjust header for right pane */
-.three-panel-layout-right .panel-header {
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.4rem;
+.preview-content {
+  flex: 1;
 }
 
-.panel-title {
+.preview-label {
+  font-size: 0.7rem;
+  color: #1565c0;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.preview-value {
   font-size: 0.9rem;
+  color: #0d47a1;
+  font-weight: 900;
+}
+
+/* Error Display */
+.error-display {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(255, 87, 51, 0.05));
+  border: 2px solid rgba(244, 67, 54, 0.3);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  text-align: center;
+  box-shadow: 0 0.4rem 1rem rgba(244, 67, 54, 0.15);
+}
+
+.error-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.error-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(244, 67, 54, 0.3));
+}
+
+.error-header h4 {
+  color: #c62828;
+  font-size: 1.1rem;
   font-weight: 900;
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  text-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.4),
-    0 0 10px rgba(255, 255, 255, 0.3);
 }
 
-/* Adjust title size for right pane */
-.three-panel-layout-right .panel-title {
-  font-size: 0.7rem;
-  letter-spacing: 1px;
-}
-
-.panel-date, .panel-subtitle {
-  font-size: 0.6rem;
-  margin-top: 0.3rem;
-  opacity: 0.9;
+.error-message {
+  color: #d32f2f;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
-/* Adjust subtitle for right pane */
-.three-panel-layout-right .panel-date,
-.three-panel-layout-right .panel-subtitle {
-  font-size: 0.5rem;
-  margin-top: 0.2rem;
-}
-
-.panel-content {
-  font-size: 0.65rem;
-  line-height: 1.3;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 2;
-}
-
-/* No Data Message */
-.no-data-message {
-  text-align: center;
-  padding: 2rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
+.retry-btn {
+  background: linear-gradient(135deg, #f44336, #ef5350);
+  color: white;
+  border: none;
   border-radius: 0.8rem;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
-  flex: 1;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 auto;
+  box-shadow: 0 0.3rem 0.8rem rgba(244, 67, 54, 0.3);
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.2rem rgba(244, 67, 54, 0.4);
+  background: linear-gradient(135deg, #e53935, #f44336);
+}
+
+/* Form Section Updates */
+.form-section {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.section-icon {
+  font-size: 0.9rem;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(25, 118, 210, 0.1);
+  border-radius: 50%;
+  border: 1px solid rgba(25, 118, 210, 0.3);
+}
+
+.section-header h3 {
+  color: #0d47a1;
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Form elements - updated */
+.date-input-group {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  gap: 0.4rem;
 }
 
-.no-data-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.6;
-}
-
-.no-data-text {
+.date-input-group label {
+  font-weight: 700;
+  color: #1565c0;
   font-size: 0.8rem;
-  font-weight: 600;
-  opacity: 0.8;
+}
+
+.date-input {
+  padding: 0.6rem;
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  border-radius: 0.6rem;
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0d47a1;
+  transition: all 0.3s ease;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.date-hint {
+  font-size: 0.7rem;
+  color: #1565c0;
   font-style: italic;
 }
 
-/* Panel Content - Compact */
-.stock-holdings, .current-holdings-list, .final-holdings-list {
-  margin-bottom: 0.4rem;
-  flex: 1;
-  overflow-y: auto;
-  max-height: 120px;
-}
-
-.stock-line, .holding-line, .final-stock-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.2rem;
-  font-weight: 600;
-  font-size: 0.55rem;
-  padding: 0.15rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  line-height: 1.2;
-}
-
-.holding-line-compact {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.15rem;
-  font-weight: 600;
-  font-size: 0.5rem;
-  padding: 0.1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  line-height: 1.2;
-}
-
-.stock-symbol, .holding-symbol, .holding-symbol-compact {
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 0.6rem;
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60px;
-}
-
-.stock-price, .holding-quantity, .stock-quantity, .holding-quantity-compact {
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.5rem;
+.stocks-slider {
+  margin-bottom: 0.8rem;
   text-align: center;
-  min-width: 25px;
-  white-space: nowrap;
 }
 
-.stock-value, .holding-value, .holding-value-compact {
-  font-weight: 900;
-  color: rgba(255, 255, 255, 1);
-  font-size: 0.55rem;
-  text-align: right;
-  min-width: 45px;
-  white-space: nowrap;
+.slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(25, 118, 210, 0.2);
+  border-radius: 2px;
+  outline: none;
 }
 
-/* Pagination Controls - Compact */
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.3rem;
-  margin: 0.3rem 0;
-  padding: 0.2rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0.3rem;
-}
-
-.page-btn {
-  width: 18px;
-  height: 18px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
   border-radius: 50%;
   cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
 }
 
-.page-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.page-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.page-indicator {
-  font-size: 0.55rem;
-  font-weight: 700;
-  color: white;
-  opacity: 0.9;
-  white-space: nowrap;
-}
-
-.total-line, .performance-indicator, .final-total-line {
-  text-align: center;
-  padding: 0.3rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 0.3rem;
+.slider-value {
+  font-size: 1.2rem;
   font-weight: 900;
-  font-size: 0.65rem;
-  margin-top: auto;
-  flex-shrink: 0;
+  color: #0d47a1;
+  margin-top: 0.5rem;
 }
 
-.perf-text.positive, .final-perf.positive {
-  color: #C8E6C9;
-}
-
-.perf-text.negative, .final-perf.negative {
-  color: #FFCDD2;
-}
-
-.journey-progress {
-  text-align: center;
-  flex: 1;
+.stocks-presets {
   display: flex;
-  flex-direction: column;
+  gap: 0.4rem;
   justify-content: center;
-  align-items: center;
-  padding: 1rem 0.5rem;
+  flex-wrap: wrap;
 }
 
-.progress-text {
-  font-size: 0.7rem;
-  font-weight: 700;
-  margin-bottom: 0.4rem;
-}
-
-.progress-stats {
-  margin-bottom: 0.6rem;
-  font-size: 0.55rem;
-  opacity: 0.9;
-}
-
-.end-journey-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.preset-btn {
   padding: 0.3rem 0.6rem;
-  border-radius: 0.3rem;
-  font-weight: 700;
-  font-size: 0.55rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(25, 118, 210, 0.3);
+  border-radius: 0.4rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  color: #1565c0;
+  font-size: 0.7rem;
 }
 
-.end-journey-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.preset-btn:hover {
+  background: rgba(227, 242, 253, 0.9);
+}
+
+.preset-btn.active {
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: white;
+  border-color: transparent;
+}
+
+.risk-stars {
+  display: flex;
+  justify-content: center;
+  gap: 1px;
+}
+
+.star {
+  font-size: 0.5rem;
+  opacity: 0.3;
+}
+
+.star.filled {
+  opacity: 1;
+}
+
+.amount-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.amount-input {
+  padding: 0.6rem;
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0d47a1;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.amount-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.amount-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.amount-btn {
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(25, 118, 210, 0.3);
+  border-radius: 0.6rem;
+  font-weight: 700;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #1565c0;
+}
+
+.amount-btn:hover {
+  background: rgba(227, 242, 253, 0.9);
   transform: translateY(-1px);
+}
+
+.amount-btn.active {
+  background: linear-gradient(45deg, #1976d2, #42a5f5);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0.2rem 0.6rem rgba(25, 118, 210, 0.3);
+}
+
+.setup-incomplete-message {
+  background: rgba(108, 117, 125, 0.3);
+  color: #6c757d;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+/* Continue with the rest of the CSS classes... */
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
 /* Gaming Timeline Navigation */
@@ -3406,6 +4576,30 @@ html {
   justify-content: center;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   z-index: 6;
+}
+
+/* Journey Phase Layout - Updated Layout */
+.journey-phase {
+  max-width: 100%;
+  margin: 0 10px;
+  flex: 1;
+}
+
+.journey-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+/* Main Content Panel - Now for timeline and below */
+.main-content-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-height: 0;
+  width: 100%;
 }
 
 /* Day Events Section - Reduced size */
@@ -4510,596 +5704,72 @@ html {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Mobile-specific optimizations */
-@media (max-width: 480px) {
-  .day-tooltip {
-    min-width: min(220px, 90vw);
-    max-width: min(260px, 95vw);
-    padding: 0.7rem;
-    font-size: 0.7rem;
+/* Remaining animations and utility classes */
+@keyframes diceContainerPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 
+      0 0 40px rgba(25, 118, 210, 0.4),
+      inset 0 2px 8px rgba(255, 255, 255, 0.2);
   }
-  
-  .tooltip-day {
-    font-size: 0.85rem;
-  }
-  
-  .tooltip-date {
-    font-size: 0.6rem;
-  }
-  
-  .section-title-compact {
-    font-size: 0.6rem;
-  }
-  
-  .stat-compact {
-    padding: 0.25rem 0.3rem;
-    min-height: 20px;
-  }
-  
-  .stat-label-compact {
-    font-size: 0.5rem;
-  }
-  
-  .stat-value-compact {
-    font-size: 0.55rem;
-  }
-  
-  .holding-row-compact,
-  .trade-row-compact {
-    grid-template-columns: 1fr auto;
-    gap: 0.3rem;
-    font-size: 0.55rem;
-  }
-  
-  .holding-qty-tooltip,
-  .trade-qty-compact {
-    display: none; /* Hide quantity on very small screens */
+  50% { 
+    transform: scale(1.02);
+    box-shadow: 
+      0 0 60px rgba(25, 118, 210, 0.6),
+      inset 0 4px 12px rgba(255, 255, 255, 0.3);
   }
 }
 
-/* Ultra-compact variant for very constrained spaces */
-@media (max-width: 320px) {
-  .day-tooltip {
-    min-width: min(200px, 95vw);
-    max-width: min(240px, 98vw);
-    padding: 0.6rem;
+@keyframes diceContainerRolling {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
   }
-  
-  .tooltip-content {
-    gap: 0.5rem;
+  25% { 
+    transform: scale(1.02) rotate(1deg);
   }
-  
-  .tooltip-section-compact,
-  .tooltip-holdings-compact,
-  .tooltip-trades-compact {
-    padding: 0.5rem;
-  }
-  
-  .holdings-list-compact,
-  .trades-list-compact {
-    max-height: 60px;
+  75% { 
+    transform: scale(1.02) rotate(-1deg);
   }
 }
 
-/* Enhance tooltip positioning for better mobile experience */
-@media (max-width: 768px) {
-  .day-tooltip {
-    position: fixed;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    max-height: 50vh;
-    z-index: 1001;
+@keyframes diceFloatIdle {
+  0%, 100% { 
+    transform: translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  33% { 
+    transform: translateY(-5px) rotateX(5deg) rotateY(5deg);
+  }
+  66% { 
+    transform: translateY(-2px) rotateX(-3deg) rotateY(-3deg);
   }
 }
 
-/* Add subtle animation for content transitions */
-.tooltip-section-compact,
-.tooltip-holdings-compact,
-.tooltip-trades-compact {
-  animation: slideInUp 0.3s ease-out;
+@keyframes rollDiceVisible {
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1); }
+  16% { transform: rotateX(60deg) rotateY(60deg) rotateZ(60deg) scale(1.1); }
+  33% { transform: rotateX(120deg) rotateY(120deg) rotateZ(120deg) scale(0.9); }
+  50% { transform: rotateX(180deg) rotateY(180deg) rotateZ(180deg) scale(1.1); }
+  66% { transform: rotateX(240deg) rotateY(240deg) rotateZ(240deg) scale(0.9); }
+  83% { transform: rotateX(300deg) rotateY(300deg) rotateZ(300deg) scale(1.1); }
+  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg) scale(1); }
 }
 
-@keyframes slideInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
+@keyframes rollButtonShake {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg);
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+  25% { 
+    transform: translateY(-2px) rotate(1deg);
   }
-}
-
-/* Setup Section */
-.setup-section {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 0.8rem;
-  padding: 0.8rem;
-  box-shadow: 0 0.5rem 1.5rem rgba(25, 118, 210, 0.2);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  backdrop-filter: blur(10px);
-  height: 100%;
-  overflow-y: auto;
-}
-
-.form-section {
-  margin-bottom: 0.8rem;
-}
-
-.form-section:last-child {
-  margin-bottom: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.6rem;
-}
-
-.section-icon {
-  font-size: 0.9rem;
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(25, 118, 210, 0.1);
-  border-radius: 50%;
-  border: 1px solid rgba(25, 118, 210, 0.3);
-}
-
-.section-header h3 {
-  color: #0d47a1;
-  font-size: 0.9rem;
-  font-weight: 800;
-  margin: 0;
-}
-
-/* Form elements */
-.date-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.date-input-group label {
-  font-weight: 700;
-  color: #1565c0;
-  font-size: 0.7rem;
-}
-
-.date-input {
-  padding: 0.5rem;
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.5rem;
-  font-size: 0.7rem;
-  background: rgba(255, 255, 255, 0.8);
-  color: #0d47a1;
-}
-
-.date-hint {
-  font-size: 0.6rem;
-  color: #1565c0;
-  font-style: italic;
-}
-
-.stocks-selector {
-  padding: 0.8rem;
-  background: rgba(227, 242, 253, 0.3);
-  border-radius: 0.8rem;
-  border: 1px solid rgba(25, 118, 210, 0.2);
-}
-
-.stocks-slider {
-  margin-bottom: 0.8rem;
-  text-align: center;
-}
-
-.slider {
-  width: 100%;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: rgba(25, 118, 210, 0.2);
-  border-radius: 2px;
-  outline: none;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, #1976d2, #42a5f5);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
-}
-
-.slider-value {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #0d47a1;
-  margin-top: 0.5rem;
-}
-
-.stocks-presets {
-  display: flex;
-  gap: 0.4rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.preset-btn {
-  padding: 0.3rem 0.6rem;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.4rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #1565c0;
-  font-size: 0.7rem;
-}
-
-.preset-btn:hover {
-  background: rgba(227, 242, 253, 0.9);
-}
-
-.preset-btn.active {
-  background: linear-gradient(135deg, #1976d2, #42a5f5);
-  color: white;
-  border-color: transparent;
-}
-
-.product-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100px, 30vw), 1fr));
-  gap: 0.5rem;
-}
-
-.product-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.8rem;
-  padding: 0.8rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0.5rem 1rem rgba(25, 118, 210, 0.3);
-}
-
-.product-card.active {
-  border-color: #1976d2;
-  background: rgba(227, 242, 253, 0.9);
-}
-
-.product-icon {
-  font-size: 1rem;
-  margin-bottom: 0.3rem;
-}
-
-.product-name {
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: #0d47a1;
-  margin-bottom: 0.3rem;
-  line-height: 1.2;
-}
-
-.risk-stars {
-  display: flex;
-  justify-content: center;
-  gap: 1px;
-}
-
-.star {
-  font-size: 0.5rem;
-  opacity: 0.3;
-}
-
-.star.filled {
-  opacity: 1;
-}
-
-.amount-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.amount-input {
-  padding: 0.5rem;
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.5rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.8);
-  color: #0d47a1;
-  text-align: center;
-}
-
-.amount-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  justify-content: center;
-}
-
-.amount-btn {
-  padding: 0.3rem 0.6rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.6rem;
-  font-weight: 700;
-  font-size: 0.6rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #1565c0;
-}
-
-.amount-btn:hover {
-  background: rgba(227, 242, 253, 0.9);
-}
-
-.amount-btn.active {
-  background: linear-gradient(45deg, #1976d2, #42a5f5);
-  color: white;
-  border-color: transparent;
-}
-
-/* Dice Section */
-.dice-section {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 0.8rem;
-  padding: 0.8rem;
-  box-shadow: 0 0.5rem 1.5rem rgba(25, 118, 210, 0.2);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  backdrop-filter: blur(10px);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-}
-
-.dice-header {
-  margin-bottom: 0.8rem;
-  flex-shrink: 0;
-}
-
-.dice-title {
-  font-size: 1rem;
-  font-weight: 900;
-  color: #0d47a1;
-  margin-bottom: 0.3rem;
-}
-
-.dice-subtitle {
-  font-size: 0.65rem;
-  color: #1565c0;
-  margin-bottom: 0.6rem;
-  font-weight: 600;
-}
-
-.dice-arena {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  flex: 1;
-  justify-content: space-evenly;
-  padding: 0.8rem 0;
-  min-height: 0;
-}
-
-.dice-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.8rem;
-  perspective: 600px;
-  position: relative;
-  padding: 1rem;
-  background: radial-gradient(circle, rgba(25, 118, 210, 0.1), transparent);
-  border-radius: 0.6rem;
-}
-
-.dice-cube {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  transform-style: preserve-3d;
-  transition: transform 0.4s ease;
-}
-
-.dice-cube.rolling {
-  animation: rollDice 0.1s infinite;
-}
-
-@keyframes rollDice {
-  0% { transform: rotateX(0) rotateY(0) rotateZ(0); }
-  25% { transform: rotateX(90deg) rotateY(45deg) rotateZ(45deg); }
-  50% { transform: rotateX(180deg) rotateY(90deg) rotateZ(90deg); }
-  75% { transform: rotateX(270deg) rotateY(135deg) rotateZ(135deg); }
-  100% { transform: rotateX(360deg) rotateY(180deg) rotateZ(180deg); }
-}
-
-.dice-face {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, #1976d2, #42a5f5);
-  border: 1px solid white;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 900;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
-}
-
-.dice-face.front { transform: translateZ(15px); }
-.dice-face.back { transform: rotateY(180deg) translateZ(15px); }
-.dice-face.right { transform: rotateY(90deg) translateZ(15px); }
-.dice-face.left { transform: rotateY(-90deg) translateZ(15px); }
-.dice-face.top { transform: rotateX(90deg) translateZ(15px); }
-.dice-face.bottom { transform: rotateX(-90deg) translateZ(15px); }
-
-.sparkle-effects {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-.sparkle-effects.active .sparkle {
-  animation: sparkleFloat 1s ease-out infinite;
-}
-
-.sparkle {
-  position: absolute;
-  font-size: 0.7rem;
-  opacity: 0;
+  75% { 
+    transform: translateY(-2px) rotate(-1deg);
+  }
 }
 
 @keyframes sparkleFloat {
-  0% { opacity: 0; transform: scale(0); }
-  50% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.5); }
-}
-
-.dice-results {
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(227, 242, 253, 0.5);
-  border-radius: 0.6rem;
-  padding: 0.6rem;
-  border: 1px solid rgba(25, 118, 210, 0.2);
-  width: 100%;
-}
-
-.results-display {
-  text-align: center;
-}
-
-.results-grid {
-  display: flex;
-  justify-content: center;
-  gap: 0.4rem;
-  margin-bottom: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.result-item {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.5rem;
-  padding: 0.4rem;
-  text-align: center;
-  min-width: 35px;
-}
-
-.result-dice {
-  font-size: 0.7rem;
-  margin-bottom: 0.2rem;
-}
-
-.result-value {
-  font-size: 0.8rem;
-  font-weight: 900;
-  color: #0d47a1;
-}
-
-.total-days {
-  background: rgba(25, 118, 210, 0.1);
-  border: 1px solid rgba(25, 118, 210, 0.3);
-  border-radius: 0.4rem;
-  padding: 0.4rem;
-  display: inline-block;
-}
-
-.total-label {
-  font-size: 0.55rem;
-  color: #1565c0;
-  margin-bottom: 0.1rem;
-}
-
-.total-value {
-  font-size: 0.9rem;
-  font-weight: 900;
-  color: #0d47a1;
-}
-
-.dice-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.setup-incomplete-btn {
-  background: rgba(108, 117, 125, 0.3);
-  color: #6c757d;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
-  font-weight: 600;
-  cursor: not-allowed;
-  font-size: 0.7rem;
-}
-
-.roll-btn {
-  background: linear-gradient(135deg, #1976d2, #42a5f5);
-  color: white;
-  border: none;
-  padding: 0;
-  border-radius: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0.3rem 0.8rem rgba(25, 118, 210, 0.3);
-}
-
-.roll-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 0.4rem 1rem rgba(25, 118, 210, 0.4);
-}
-
-.roll-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.roll-btn-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
-}
-
-.roll-icon {
-  font-size: 0.9rem;
-}
-
-.roll-text {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  0% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+  100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
 }
 
 /* Utility Classes */
@@ -5111,37 +5781,8 @@ html {
   color: #c62828;
 }
 
-/* Scrollbar Styles */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(25, 118, 210, 0.1);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(25, 118, 210, 0.3);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(25, 118, 210, 0.5);
-}
-
-/* Animation performance optimization */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 .portfolio-text {
-  color: coral;
+  color: #FF9800;
 }
 
 .journey-progress-value {
@@ -5184,5 +5825,34 @@ html {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(25, 118, 210, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(25, 118, 210, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(25, 118, 210, 0.5);
+}
+
+/* Animation performance optimization */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

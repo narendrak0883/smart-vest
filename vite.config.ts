@@ -7,9 +7,20 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+    server: {
+    proxy: {
+      // Proxy API requests to your backend
+      '/api': {
+        target: 'http://vivekamih.gotdns.com:5502',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   }
 })
+
