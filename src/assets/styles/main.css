@@ -329,7 +329,6 @@ p {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,8 +342,6 @@ p {
 
 .timeline-node.active {
   transform: scale(1.2);
-  background-color: var(--secondary);
-  color: var(--dark);
 }
 
 .timeline-node:hover {
@@ -487,3 +484,4 @@ input[type="range"]::-moz-range-thumb {
   background-color: var(--error);
   color: var(--light);
 }
+

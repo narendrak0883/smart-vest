@@ -11,7 +11,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to your backend
       '/api': {
-        target: 'http://vivekamih.gotdns.com:5502',
+        target: 'http://vivekamih.gotdns.com:5501',
         changeOrigin: true,
         secure: false,
       }
