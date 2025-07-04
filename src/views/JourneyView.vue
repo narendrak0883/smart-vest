@@ -1296,9 +1296,9 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 
 // API Configuration
-const API_BASE_URL = '/api/mobile';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';;
 const API_ENDPOINTS = {
-  SMARTVEST_DATA: '/Getsmartvestdata'
+  SMARTVEST_DATA: 'api/mobile/Getsmartvestdata'
 };
 
 const activeAnimations = ref([])
