@@ -106,6 +106,45 @@
   </div>
 </div>
 
+<!-- Exit Confirmation Dialog -->
+<div v-if="showExitDialog" class="exit-dialog-overlay">
+  <div class="exit-dialog-background"></div>
+  <div class="exit-dialog-container">
+    <!-- Exit Icon -->
+    <div class="exit-dialog-header">
+      <div class="exit-icon">🚪</div>
+      <h2 class="exit-title">Exit Investment Journey?</h2>
+      <p class="exit-subtitle">Are you sure you want to leave?</p>
+    </div>
+
+    <!-- Exit Message -->
+    <div class="exit-message-container">
+      <div class="exit-warning-icon">⚠️</div>
+      <div class="exit-message">
+        <p class="exit-main-text">Your current journey progress will be lost.</p>
+        <p class="exit-sub-text">You can always start a new journey anytime!</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="exit-actions">
+      <button class="exit-btn cancel-btn" @click="cancelExit">
+        <span class="btn-icon">↩️</span>
+        <span class="btn-text">Stay & Continue</span>
+      </button>
+      <button class="exit-btn confirm-btn" @click="confirmExit">
+        <span class="btn-icon">👋</span>
+        <span class="btn-text">Yes, Exit Journey</span>
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="exit-dialog-footer">
+      <p class="footer-note">Thank you for using Vivekam Investment Journey!</p>
+    </div>
+  </div>
+</div>
+
   <div class="journey-background">
     <div class="floating-shapes">
       <div v-for="n in 15" :key="n" class="shape" :style="getShapeStyle(n)"></div>
@@ -301,11 +340,11 @@
                   </div>
                   
                   <!-- Price Data Row -->
+                  <!-- Price Data Row -->
                   <div class="price-data-row">
-                    <span class="price-item-compact low">L:₹{{ event.dayLow || 'N/A' }}</span>
                     <span class="price-item-compact high">H:₹{{ event.dayHigh || 'N/A' }}</span>
-                    <span class="price-item-compact buy">B:₹{{ event.price || 'N/A' }}</span>
-                    <span class="price-item-compact current">C:₹{{ event.currentPrice || 'N/A' }}</span>
+                    <span class="price-item-compact low">L:₹{{ event.dayLow || 'N/A' }}</span>
+                    <span class="price-item-compact buy">T:₹{{ event.price || 'N/A' }}</span>
                   </div>
                 </div>
               </div>
@@ -1120,43 +1159,6 @@
                   </div>
                 </div>
 
-                <!-- Journey Preview -->
-                <div v-if="isSetupComplete" class="journey-preview">
-                  <div class="preview-header">
-                    <h4>📊 Journey Preview</h4>
-                  </div>
-                  <div class="preview-stats">
-                    <div class="preview-item">
-                      <span class="preview-icon">📅</span>
-                      <div class="preview-content">
-                        <div class="preview-label">Start Date</div>
-                        <div class="preview-value">{{ formatDateShort(journeySetup.startDate) }}</div>
-                      </div>
-                    </div>
-                    <div class="preview-item">
-                      <span class="preview-icon">💰</span>
-                      <div class="preview-content">
-                        <div class="preview-label">Investment</div>
-                        <div class="preview-value">₹{{ formatAmount(journeySetup.amount) }}</div>
-                      </div>
-                    </div>
-                    <div class="preview-item">
-                      <span class="preview-icon">📊</span>
-                      <div class="preview-content">
-                        <div class="preview-label">Stocks</div>
-                        <div class="preview-value">{{ journeySetup.numberOfStocks }}</div>
-                      </div>
-                    </div>
-                    <div class="preview-item">
-                      <span class="preview-icon">📦</span>
-                      <div class="preview-content">
-                        <div class="preview-label">Strategy</div>
-                        <div class="preview-value">{{ selectedProductName.split(' ')[0] }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- Error Display -->
                 <div v-if="journeyError" class="error-display">
                   <div class="error-header">
@@ -1247,32 +1249,16 @@
           </div>
         </div>
       </div>
-
-      <!-- Holdings List -->
-      <div v-if="dayTooltip.day?.portfolio?.holdings?.length > 0" class="tooltip-holdings-compact">
-        <div class="section-title-compact">💼 Holdings ({{ dayTooltip.day.portfolio.holdings.length }})</div>
-        <div class="holdings-list-compact">
-          <div 
-            v-for="(holding, index) in dayTooltip.day.portfolio.holdings" 
-            :key="holding.symbol"
-            class="holding-row-compact"
-          >
-            <span class="holding-symbol-tooltip">{{ holding.symbol }}</span>
-            <span class="holding-qty-tooltip">{{ holding.quantity }}</span>
-            <span class="holding-value-tooltip">₹{{ formatAmount(holding.value) }}</span>
-          </div>
-        </div>
-      </div>
       
       <!-- Trading Activity (if any) -->
       <div v-if="dayTooltip.day?.events?.length > 0" class="tooltip-trades-compact">
         <div class="section-title-compact">💱 Day Events ({{ dayTooltip.day.events.length }})</div>
-        <div class="trades-list-compact">
-          <div 
+           <div v-if="dayTooltip.day?.events?.length > 0" class="trades-list-compact">
+            <div 
             v-for="(event, index) in dayTooltip.day.events.slice(0, 4)" 
             :key="index"
             :class="['trade-row-compact', event.type.toLowerCase()]"
-          >
+            >
             <span class="trade-icon-compact">{{ event.type === 'BUY' ? '📈' : event.type === 'SELL' ? '📉' : '💰' }}</span>
             <span class="trade-details-compact">
               {{ event.type }} {{ event.stock || event.type === 'DIVIDEND' ? event.stock || 'DIV' : 'N/A' }}
@@ -1285,7 +1271,11 @@
             +{{ dayTooltip.day.events.length - 4 }} more events
           </div>
         </div>
-      </div>
+              </div>
+          <div v-else class="no-events-message">
+              <div class="no-events-icon">📭</div>
+              <div class="no-events-text">No trading activity</div>
+          </div>
     </div>
   </div>
 
@@ -1306,7 +1296,7 @@ const animationCounter = ref(0)
 const isAnimating = ref(false)
 
 const animationConfig = {
-  duration: 1200,
+  duration: 2000,
   buyColor: '#22c55e',
   sellColor: '#ef4444', 
   dividendColor: '#fbbf24',
@@ -1319,6 +1309,7 @@ const isQuoteCycling = ref(false)
 const canCloseDialog = ref(false)
 const quoteInterval = ref(null)
 const apiCompleted = ref(false)
+const showExitDialog = ref(false);
 
 // Vivekam inspirational quotes
 const fiveYearQuotes = ref([
@@ -1859,26 +1850,313 @@ const loadingMessage = ref('');
 // API Functions
 const fetchSmartVestData = async (payload) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SMARTVEST_DATA}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'eyJndWVzdCI6dHJ1ZSwiZXhwIFvkmSmtVest2317'
-      },
-      body: JSON.stringify(payload)
-    });
+ //   const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SMARTVEST_DATA}`, {
+//    method: 'POST',
+ //     headers: {
+  //      'Content-Type': 'application/json',
+   //     'Authorization': 'eyJndWVzdCI6dHJ1ZSwiZXhwIFvkmSmtVest2317'
+    //  },
+     // body: JSON.stringify(payload)
+    //});
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+//    if (!response.ok) {
+//     throw new Error(`HTTP error! status: ${response.status}`);
+//   }
+
+  //  const result = await response.json();
+
+    const x = {
+    "code": "200",
+    "message": "Success",
+    "data": {
+        "DailyPortfolioDetails": [{
+            "CapitalGains": 0.0,
+            "Cash": 3048.96,
+            "DividendReceived": 0.0,
+            "Holdings": [{
+                "BuyPrice": 61.850000,
+                "CurrentPrice": 62.60,
+                "Quantity": 161,
+                "Symbol": ""
+            }, {
+                "BuyPrice": 106.500000,
+                "CurrentPrice": 107.75,
+                "Quantity": 93,
+                "Symbol": "ALEMBICLTD"
+            }, {
+                "BuyPrice": 1640.620000,
+                "CurrentPrice": 1698.13,
+                "Quantity": 6,
+                "Symbol": "BAJAJFINSV"
+            }, {
+                "BuyPrice": 357.610000,
+                "CurrentPrice": 354.54,
+                "Quantity": 27,
+                "Symbol": "HEG"
+            }, {
+                "BuyPrice": 3794.750000,
+                "CurrentPrice": 3804.65,
+                "Quantity": 2,
+                "Symbol": "MAHSCOOTER"
+            }],
+            "IndexPrice": 17625.70,
+            "IndexReturn": 0.0,
+            "PortfolioId": 10024,
+            "PortfolioReturn": 0.0,
+            "PortfolioValue": 50518.97,
+            "TransactionDate": "2022-01-03T00:00:00",
+            "Transactions": [{
+                "High": 3836.20,
+                "Low": 3780.00,
+                "OrderType": "Buy",
+                "Price": 3794.75,
+                "Quantity": 2,
+                "Symbol": "MAHSCOOTER"
+            }, {
+                "High": 364.60,
+                "Low": 353.40,
+                "OrderType": "Buy",
+                "Price": 357.61,
+                "Quantity": 27,
+                "Symbol": "HEG"
+            }, {
+                "High": 63.65,
+                "Low": 61.35,
+                "OrderType": "Buy",
+                "Price": 61.85,
+                "Quantity": 161,
+                "Symbol": ""
+            }, {
+                "High": 108.85,
+                "Low": 107.05,
+                "OrderType": "Buy",
+                "Price": 106.50,
+                "Quantity": 93,
+                "Symbol": "ALEMBICLTD"
+            }, {
+                "High": 1704.00,
+                "Low": 1640.65,
+                "OrderType": "Buy",
+                "Price": 1640.62,
+                "Quantity": 6,
+                "Symbol": "BAJAJFINSV"
+            }]
+        }, {
+            "CapitalGains": 0.0,
+            "Cash": 44.91,
+            "DividendReceived": 0.0,
+            "Holdings": [{
+                "BuyPrice": 61.850000,
+                "CurrentPrice": 62.20,
+                "Quantity": 161,
+                "Symbol": ""
+            }, {
+                "BuyPrice": 106.500000,
+                "CurrentPrice": 110.05,
+                "Quantity": 93,
+                "Symbol": "ALEMBICLTD"
+            }, {
+                "BuyPrice": 1640.620000,
+                "CurrentPrice": 1713.55,
+                "Quantity": 6,
+                "Symbol": "BAJAJFINSV"
+            }, {
+                "BuyPrice": 357.610000,
+                "CurrentPrice": 360.81,
+                "Quantity": 27,
+                "Symbol": "HEG"
+            }, {
+                "BuyPrice": 3794.750000,
+                "CurrentPrice": 3812.00,
+                "Quantity": 2,
+                "Symbol": "MAHSCOOTER"
+            }, {
+                "BuyPrice": 143.050000,
+                "CurrentPrice": 147.80,
+                "Quantity": 21,
+                "Symbol": "ONGC"
+            }],
+            "IndexPrice": 17805.25,
+            "IndexReturn": 0.0,
+            "PortfolioId": 10024,
+            "PortfolioReturn": 0.0,
+            "PortfolioValue": 51044.73,
+            "TransactionDate": "2022-01-04T00:00:00",
+            "Transactions": [{
+                "High": 148.60,
+                "Low": 143.10,
+                "OrderType": "Sell",
+                "Price": 143.05,
+                "Quantity": 21,
+                "Symbol": "ONGC"
+            }]
+        }, {
+            "CapitalGains": 0.0,
+            "Cash": 44.91,
+            "DividendReceived": 0.0,
+            "Holdings": [{
+                "BuyPrice": 61.850000,
+                "CurrentPrice": 67.10,
+                "Quantity": 161,
+                "Symbol": ""
+            }, {
+                "BuyPrice": 106.500000,
+                "CurrentPrice": 111.45,
+                "Quantity": 93,
+                "Symbol": "ALEMBICLTD"
+            }, {
+                "BuyPrice": 1640.620000,
+                "CurrentPrice": 1798.84,
+                "Quantity": 6,
+                "Symbol": "BAJAJFINSV"
+            }, {
+                "BuyPrice": 357.610000,
+                "CurrentPrice": 364.97,
+                "Quantity": 27,
+                "Symbol": "HEG"
+            }, {
+                "BuyPrice": 3794.750000,
+                "CurrentPrice": 3872.80,
+                "Quantity": 2,
+                "Symbol": "MAHSCOOTER"
+            }, {
+                "BuyPrice": 143.050000,
+                "CurrentPrice": 150.35,
+                "Quantity": 21,
+                "Symbol": "ONGC"
+            }],
+            "IndexPrice": 17925.25,
+            "IndexReturn": 0.0,
+            "PortfolioId": 10024,
+            "PortfolioReturn": 0.0,
+            "PortfolioValue": 52763.04,
+            "TransactionDate": "2022-01-05T00:00:00",
+            "Transactions": null
+        }, {
+            "CapitalGains": 0.0,
+            "Cash": 44.91,
+            "DividendReceived": 0.0,
+            "Holdings": [{
+                "BuyPrice": 61.850000,
+                "CurrentPrice": 71.70,
+                "Quantity": 161,
+                "Symbol": ""
+            }, {
+                "BuyPrice": 106.500000,
+                "CurrentPrice": 109.15,
+                "Quantity": 93,
+                "Symbol": "ALEMBICLTD"
+            }, {
+                "BuyPrice": 1640.620000,
+                "CurrentPrice": 1798.65,
+                "Quantity": 6,
+                "Symbol": "BAJAJFINSV"
+            }, {
+                "BuyPrice": 357.610000,
+                "CurrentPrice": 357.81,
+                "Quantity": 27,
+                "Symbol": "HEG"
+            }, {
+                "BuyPrice": 3794.750000,
+                "CurrentPrice": 3978.30,
+                "Quantity": 2,
+                "Symbol": "MAHSCOOTER"
+            }, {
+                "BuyPrice": 143.050000,
+                "CurrentPrice": 150.80,
+                "Quantity": 21,
+                "Symbol": "ONGC"
+            }],
+            "IndexPrice": 17745.90,
+            "IndexReturn": 0.0,
+            "PortfolioId": 10024,
+            "PortfolioReturn": 0.0,
+            "PortfolioValue": 53315.73,
+            "TransactionDate": "2022-01-06T00:00:00",
+            "Transactions": null
+        }, {
+            "CapitalGains": 0.0,
+            "Cash": 44.91,
+            "DividendReceived": 0.0,
+            "Holdings": [{
+                "BuyPrice": 61.850000,
+                "CurrentPrice": 72.30,
+                "Quantity": 161,
+                "Symbol": ""
+            }, {
+                "BuyPrice": 106.500000,
+                "CurrentPrice": 109.30,
+                "Quantity": 93,
+                "Symbol": "ALEMBICLTD"
+            }, {
+                "BuyPrice": 1640.620000,
+                "CurrentPrice": 1775.69,
+                "Quantity": 6,
+                "Symbol": "BAJAJFINSV"
+            }, {
+                "BuyPrice": 357.610000,
+                "CurrentPrice": 360.78,
+                "Quantity": 27,
+                "Symbol": "HEG"
+            }, {
+                "BuyPrice": 3794.750000,
+                "CurrentPrice": 3996.15,
+                "Quantity": 2,
+                "Symbol": "MAHSCOOTER"
+            }, {
+                "BuyPrice": 143.050000,
+                "CurrentPrice": 157.05,
+                "Quantity": 21,
+                "Symbol": "ONGC"
+            }],
+            "IndexPrice": 17812.70,
+            "IndexReturn": 0.0,
+            "PortfolioId": 10024,
+            "PortfolioReturn": 0.0,
+            "PortfolioValue": 53535.66,
+            "TransactionDate": "2022-01-07T00:00:00",
+            "Transactions": null
+        }],
+        "SmartVestGraphData": [{
+            "IndexNav": 1.00000000000000000000,
+            "IndexValue": 17625.70,
+            "PortfolioNav": 1.01037940000000000000,
+            "PortfolioValue": 50518.97,
+            "TransactionDate": "2022-01-03T00:00:00"
+        }, {
+            "IndexNav": 1.01018682945925551892,
+            "IndexValue": 17805.25,
+            "PortfolioNav": 1.02089460000000000000,
+            "PortfolioValue": 51044.73,
+            "TransactionDate": "2022-01-04T00:00:00"
+        }, {
+            "IndexNav": 1.01699506969935945806,
+            "IndexValue": 17925.25,
+            "PortfolioNav": 1.05526080000000000000,
+            "PortfolioValue": 52763.04,
+            "TransactionDate": "2022-01-05T00:00:00"
+        }, {
+            "IndexNav": 1.00681958730717077903,
+            "IndexValue": 17745.90,
+            "PortfolioNav": 1.06631460000000000000,
+            "PortfolioValue": 53315.73,
+            "TransactionDate": "2022-01-06T00:00:00"
+        }, {
+            "IndexNav": 1.01060950770749530515,
+            "IndexValue": 17812.70,
+            "PortfolioNav": 1.07071320000000000000,
+            "PortfolioValue": 53535.66,
+            "TransactionDate": "2022-01-07T00:00:00"
+        }]
     }
-
-    const result = await response.json();
+}
     
-    if (result.code !== "200") {
-      throw new Error(result.message || 'API request failed');
-    }
+ //   if (result.code !== "200") {
+  //    throw new Error(result.message || 'API request failed');
+  //  }
 
-    return result.data;
+    return x.data;
+    //result.data;
   } catch (error) {
     console.error('API Error:', error);
     throw error;
@@ -2152,9 +2430,9 @@ const animateEventGroup = async (events, type, delay) => {
       events.forEach((event, index) => {
         setTimeout(() => {
           createStockAnimation(event, type, index);
-        }, index * 150);
+        }, index * 250); // Increased from 150 to 250ms for slower staggering
       });
-      setTimeout(resolve, events.length * 150);
+      setTimeout(resolve, events.length * 250);
     }, delay);
   });
 };
@@ -2182,16 +2460,27 @@ const createStockAnimation = (event, type, index) => {
     }, 50);
   });
   
-  setTimeout(() => {
-    const animIndex = activeAnimations.value.findIndex(a => a.id === animationId);
-    if (animIndex > -1) activeAnimations.value.splice(animIndex, 1);
-  }, animationConfig.duration);
+setTimeout(() => {
+  const animIndex = activeAnimations.value.findIndex(a => a.id === animationId);
+  if (animIndex > -1) {
+    // If it's a sell animation, highlight the cash
+    if (type === 'sell') {
+      highlightCashOnSell();
+    }
+    activeAnimations.value.splice(animIndex, 1);
+  }
+}, animationConfig.duration);
 };
 
 const getPanelPositions = () => {
   const startPanel = document.querySelector('.start-portfolio');
   const currentPanel = document.querySelector('.current-snapshot');
   const finalPanel = document.querySelector('.final-portfolio');
+  
+  // Find cash component in final panel
+  const finalCashElement = document.querySelector('.final-portfolio .cash-component') || 
+                           document.querySelector('.final-portfolio .summary-item.cash-component') ||
+                           document.querySelector('.final-portfolio .cash-amount');
   
   const getPosition = (element) => {
     if (!element) return { x: 0, y: 0 };
@@ -2202,10 +2491,20 @@ const getPanelPositions = () => {
     };
   };
   
+  const getFinalPanelPosition = () => {
+    if (!finalPanel) return { x: 0, y: 0 };
+    const rect = finalPanel.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.bottom - 60 // Position near bottom where cash is typically displayed
+    };
+  };
+  
   return {
     start: getPosition(startPanel),
     current: getPosition(currentPanel),
     final: getPosition(finalPanel),
+    finalCash: finalCashElement ? getPosition(finalCashElement) : getFinalPanelPosition(),
     viewport: { width: window.innerWidth, height: window.innerHeight }
   };
 };
@@ -2261,9 +2560,10 @@ const updateAnimationStyle = (animationId, type, panelPositions) => {
       transform = 'translate(-50%, -50%) scale(1)';
       break;
     case 'sell':
-      endX = panelPositions.viewport.width + 200;
-      endY = panelPositions.start.y + (Math.random() - 0.5) * 100;
-      transform = 'translate(-50%, -50%) scale(0.3)';
+      // Animate to cash position in final panel
+      endX = panelPositions.finalCash.x;
+      endY = panelPositions.finalCash.y;
+      transform = 'translate(-50%, -50%) scale(0.8)'; // Slightly smaller but still visible
       break;
     case 'dividend':
       endX = panelPositions.current.x + (Math.random() - 0.5) * 100;
@@ -2281,7 +2581,8 @@ const updateAnimationStyle = (animationId, type, panelPositions) => {
     left: endX + 'px',
     top: endY + 'px',
     transform: transform,
-    transition: `all ${animationConfig.duration}ms cubic-bezier(0.4, 0.0, 0.2, 1)`
+    // Slower transition for better visibility
+    transition: `all ${animationConfig.duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
   };
 };
 
@@ -2712,6 +3013,19 @@ const getXAxisLabels = () => {
   return labels;
 };
 
+const highlightCashOnSell = () => {
+  const cashElements = document.querySelectorAll('.final-portfolio .cash-amount, .final-portfolio .summary-amount.cash-amount');
+  
+  cashElements.forEach(element => {
+    element.classList.add('highlight');
+    
+    // Remove highlight class after animation
+    setTimeout(() => {
+      element.classList.remove('highlight');
+    }, 1000);
+  });
+};
+
 const formatDate = (date) => {
   if (!date) return '';
   return new Date(date).toLocaleDateString('en-GB', {
@@ -2865,9 +3179,15 @@ const showDayTooltip = (event, day) => {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   
-  // Much wider tooltip to show all data in one view
-  const tooltipWidth = Math.min(420, viewportWidth * 0.9); // Increased from 240 to 420
-  const tooltipHeight = Math.min(400, viewportHeight * 0.8); // Increased height too
+  // Consistent tooltip sizing
+  const tooltipWidth = Math.min(350, viewportWidth * 0.9);
+  
+  // Fixed height approach for consistency
+  const minHeight = 280; // Minimum height
+  const maxHeight = Math.min(450, viewportHeight * 0.75); // Maximum height
+  
+  // Use consistent height - not dynamic based on content
+  const tooltipHeight = Math.max(minHeight, Math.min(maxHeight, 380));
   
   let x = rect.left + rect.width / 2 - tooltipWidth / 2;
   let y = rect.top - tooltipHeight - 15;
@@ -2879,14 +3199,26 @@ const showDayTooltip = (event, day) => {
     x = viewportWidth - tooltipWidth - 10;
   }
   
-  // Ensure tooltip stays within viewport vertically
+  // Consistent vertical positioning
   if (y < 10) {
-    y = rect.bottom + 15; // Show below if not enough space above
+    // Not enough space above, show below
+    y = rect.bottom + 15;
+    
+    // If doesn't fit below, center it in viewport
     if (y + tooltipHeight > viewportHeight - 10) {
-      y = Math.max(10, viewportHeight - tooltipHeight - 10); // Fit within viewport
+      y = Math.max(10, (viewportHeight - tooltipHeight) / 2);
     }
-  }  
- 
+  }
+  
+  // Final check - ensure tooltip is fully visible
+  if (y + tooltipHeight > viewportHeight - 10) {
+    y = viewportHeight - tooltipHeight - 10;
+  }
+  
+  if (y < 10) {
+    y = 10;
+  }
+  
   dayTooltip.value = {
     visible: true,
     x: x,
@@ -2897,6 +3229,7 @@ const showDayTooltip = (event, day) => {
     height: tooltipHeight
   };
 };
+
 const hideDayTooltip = () => {
   if (!dayTooltip.value.isPinned) {
     dayTooltip.value.visible = false;
@@ -3640,41 +3973,38 @@ const goToDay = (index) => {
 
 const startNewJourney = () => {
   stopAutoProgression();
-    isFullScreenLoading.value = false;
-  loadingMessage.value = '';
-  currentPhase.value = 'setup';
-  journeySetup.value = {
-    startDate: '',
-    selectedProduct: 'BG',
-    amount: 100000,
-    numberOfStocks: 10,
-    investmentType: 'S'
-  };
-  diceRolls.value = [];
-  diceRollCount.value = 0; // Reset roll count
-  rollingType.value = 'S'; // Reset rolling type
-  journeyDays.value = [];
-  currentDayIndex.value = 0;
-  selectedDayIndex.value = 0;
-  timelineStartIndex.value = 0;
-  startStockPage.value = 0;
-  eventsPage.value = 0;
-  finalStockPage.value = 0;
-  autoProgressEnabled.value = true;
-  isJourneyDataLoading.value = false;
-  journeyError.value = null;
-  showFinalResults.value = false;
-  isJourneyCompleting.value = false;
-  currentPortfolioId.value = "0";
-  dayTooltip.value = {
-    visible: false,
-    x: 0,
-    y: 0,
-    day: null,
-    isPinned: false,
-    width: 240,
-    height: 300
-  };
+  
+  // Add loading state for smooth transition
+  isFullScreenLoading.value = true;
+  loadingMessage.value = 'Starting New Journey...';
+  
+  console.log('🔄 Starting new investment journey...');
+  
+  // Navigate to new journey page and reload
+  setTimeout(() => {
+    const currentUrl = window.location.href;
+    
+    // Ensure we're navigating to the journey page
+    let newJourneyUrl;
+    if (currentUrl.includes('/journey')) {
+      // Already on journey page, just reload
+      newJourneyUrl = currentUrl;
+    } else {
+      // Add /journey to current URL
+      newJourneyUrl = currentUrl.endsWith('/') ? 
+        currentUrl + 'journey' : 
+        currentUrl + '/journey';
+    }
+    
+    // Navigate to journey page and reload
+    window.location.href = newJourneyUrl;
+    
+    // Force reload after navigation
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+    
+  }, 1000); // Brief delay to show loading message
 };
 
 const retryJourney = () => {
@@ -3703,9 +4033,23 @@ const endJourney = () => {
 };
 
 const exitJourney = () => {
+  // Show confirmation dialog instead of directly exiting
+  showExitDialog.value = true;
+};
+
+const cancelExit = () => {
+  showExitDialog.value = false;
+  console.log('Exit cancelled - continuing journey');
+};
+
+const confirmExit = () => {
   stopAutoProgression();
-  // Simulate router push
-  console.log('Navigating to home...');
+  showExitDialog.value = false;
+  
+  console.log('🏠 Navigating to home page...');
+  
+  // Navigate to home page (root of current domain)
+  window.location.href = window.location.origin;
 };
 
 watch(currentDayIndex, () => {
@@ -3844,7 +4188,6 @@ html {
   max-width: 100vw;
   margin: 0;
   padding: 0.2rem;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -5015,13 +5358,24 @@ html {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(253, 224, 71, 0.3);
 }
 
-/* Price Data Row - Compact Single Row */
 .price-data-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.3rem;
   align-items: center;
   margin-top: 0.2rem;
+}
+
+@media (max-width: 768px) {
+  .price-data-row {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.15rem;
+  }
+  
+  .price-item-compact {
+    font-size: 0.35rem;
+    padding: 0.05rem;
+  }
 }
 
 .price-item-compact {
@@ -5040,27 +5394,8 @@ html {
   justify-content: center;
 }
 
-@media (max-width: 768px) {
-  .price-data-row {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 0.15rem;
-  }
-  
-  .price-item-compact {
-    font-size: 0.35rem;
-    padding: 0.05rem;
-  }
-}
-
 .events-count {
   color: #3f11ed
-}
-
-.current-snapshot .price-item-compact {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(30, 58, 138, 0.3) !important;
-  color: #1f2937 !important;
-  font-weight: 800 !important;
 }
 
 .pagination-controls {
@@ -5733,12 +6068,10 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
   z-index: 6;
 }
 
-/* Combined Setup Phase Layout */
 .combined-setup-phase {
   max-width: min(100vw, 95vw);
   margin: 0 auto;
-  padding: 0.4rem;
-  min-height: calc(100vh - 2rem);
+  padding: 0.2rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -5746,9 +6079,9 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
 
 .combined-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
   flex-shrink: 0;
-  padding: 0.4rem 0;
+  padding: 0.2rem 0;
 }
 
 .cash-amount {
@@ -5799,11 +6132,11 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
 .two-pane-setup-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  min-height: 600px;
+  min-height: 500px;
 }
 
 @media (max-width: 900px) {
@@ -5821,33 +6154,13 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
     rgba(191, 219, 254, 0.85) 70%,
     rgba(147, 197, 253, 0.8) 100%
   );
-  border-radius: 1.5rem;
-  padding: 1.5rem;
+  border-radius: 1rem;
+  padding: 1rem;
   box-shadow: 
     0 0.5rem 1.5rem rgba(96, 165, 250, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 2px solid rgba(147, 197, 253, 0.3);
   backdrop-filter: blur(20px);
-}
-.configuration-pane::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.config-pane-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  position: relative;
-  z-index: 2;
 }
 
 .config-header-icon {
@@ -6644,65 +6957,6 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
   font-size: 1rem;
 }
 
-.journey-preview {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 0.3rem 0.8rem rgba(245, 158, 11, 0.15);
-  border: 2px solid rgba(245, 158, 11, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.preview-header h4 {
-  color: #b45309;
-  font-size: 1rem;
-  font-weight: 900;
-  margin: 0 0 0.8rem 0;
-  text-align: center;
-  text-shadow: 0 1px 2px rgba(180, 83, 9, 0.2);
-}
-
-.preview-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
-}
-
-.preview-item {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.preview-icon {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
-}
-
-.preview-content {
-  flex: 1;
-}
-
-.preview-label {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 0.2rem;
-}
-
-.preview-value {
-  font-size: 0.9rem;
-  color: #ffffff;
-  font-weight: 900;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
 .error-display {
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(244, 67, 54, 0.5);
@@ -7304,7 +7558,6 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   }
 }
 
-/* Day Tooltip Styles - Enhanced and Wider */
 .day-tooltip {
   position: fixed;
   z-index: 1000;
@@ -7312,10 +7565,8 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   color: white;
   border-radius: 0.8rem;
   padding: 1rem;
-  min-width: min(420px, 90vw);
-  max-width: min(450px, 95vw);
-  max-height: min(80vh, 80dvh);
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 
     0 1rem 2rem rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -7324,6 +7575,11 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   border: 1px solid rgba(59, 130, 246, 0.25);
   animation: tooltipFadeIn 0.25s ease-out;
   font-size: 0.75rem;
+  /* Ensure consistent sizing */
+  min-height: 280px;
+  max-height: 450px;
+  display: flex;
+  flex-direction: column;
 }
 
 .tooltip-header {
@@ -7437,98 +7693,64 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   color: #60a5fa;
 }
 
-.tooltip-holdings-compact {
-  background: rgba(16, 185, 129, 0.08);
-  border-radius: 0.5rem;
-  padding: 0.6rem;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.holdings-list-compact {
-  max-height: 120px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding-right: 0.3rem;
-}
-
-@media (max-width: 420px) {
-  .holdings-list-compact {
-    max-height: 100px;
-    gap: 0.2rem;
-    padding-right: 0.2rem;
-  }
-}
-
-@media (max-width: 320px) {
-  .holdings-list-compact {
-    max-height: 80px;
-  }
-}
-
-.holding-row-compact {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 0.6rem;
-  align-items: center;
-  font-size: 0.65rem;
-  padding: 0.3rem 0.4rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
-  border-radius: 0.3rem;
-  min-height: 24px;
-}
-
-.holding-row-compact:hover {
-  background: rgba(16, 185, 129, 0.1);
-  border-bottom-color: rgba(255, 255, 255, 0.15);
-}
-
-.holding-row-compact:last-child {
-  border-bottom: none;
-}
-
-.holding-symbol-tooltip {
-  font-weight: 800;
-  color: #d1fae5;
-  font-size: 0.65rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 80px;
-}
-
-.holding-qty-tooltip {
-  font-weight: 600;
-  color: #a7f3d0;
-  text-align: center;
-  font-size: 0.6rem;
-  min-width: 35px;
-}
-
-.holding-value-tooltip {
-  font-weight: 700;
-  color: white;
-  text-align: right;
-  font-size: 0.6rem;
-  min-width: 60px;
-}
-
 .tooltip-trades-compact {
   background: rgba(255, 193, 7, 0.08);
   border-radius: 0.5rem;
   padding: 0.6rem;
   border: 1px solid rgba(255, 193, 7, 0.2);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow shrinking */
 }
 
 .trades-list-compact {
-  max-height: 100px;
+  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
   padding-right: 0.3rem;
+  min-height: 120px; /* Minimum height for events area */
+  /* Better scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.trades-list-compact::-webkit-scrollbar {
+  width: 4px;
+}
+
+.trades-list-compact::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.trades-list-compact::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.trades-list-compact::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 600px) {
+  .day-tooltip {
+    /* On mobile, use more of the screen */
+    max-width: 95vw !important;
+    max-height: 85vh !important;
+    margin: 10px;
+    font-size: 0.7rem;
+  }
+  
+  .trades-list-compact {
+    max-height: 150px;
+  }
+  
+  .tooltip-section-compact {
+    padding: 0.4rem;
+  }
 }
 
 .trade-row-compact {
@@ -9429,13 +9651,18 @@ background: rgb(1 7 22 / 20%);
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%);
   border-radius: 1.5rem;
   padding: 2rem;
-  max-width: 500px;
-  width: 90%;
+  width: 500px;
+  height: 550px;
+  max-width: 90vw;
+  max-height: 90vh;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 2px solid rgba(59, 130, 246, 0.2);
   animation: dialogSlideIn 0.5s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 @keyframes dialogFadeIn {
@@ -9492,7 +9719,8 @@ background: rgb(1 7 22 / 20%);
 
 .dialog-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
 }
 
 .vivekam-logo {
@@ -9527,11 +9755,24 @@ background: rgb(1 7 22 / 20%);
 
 .quote-container {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 200px;
+  max-height: 250px;
+  overflow: hidden;
 }
 
 .quote-content {
   animation: quoteSlideIn 0.6s ease-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 1rem 0;
 }
 
 @keyframes quoteSlideIn {
@@ -9552,21 +9793,29 @@ background: rgb(1 7 22 / 20%);
 }
 
 .main-quote {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1e40af;
   font-style: italic;
   line-height: 1.4;
   margin: 0 0 1rem 0;
   text-shadow: 0 1px 2px rgba(30, 64, 175, 0.1);
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  text-align: center;
 }
 
 .quote-subtitle {
   color: #64748b;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   line-height: 1.4;
   margin: 0;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  text-align: center;
 }
 
 .quote-indicators {
@@ -9595,11 +9844,13 @@ background: rgb(1 7 22 / 20%);
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   padding: 1rem;
   background: rgba(59, 130, 246, 0.05);
   border-radius: 0.8rem;
   border: 1px solid rgba(59, 130, 246, 0.1);
+  flex-shrink: 0;
+  min-height: 80px;
 }
 
 .processing-spinner {
@@ -9636,6 +9887,8 @@ background: rgb(1 7 22 / 20%);
   text-align: center;
   padding-top: 1rem;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .footer-text {
@@ -9647,16 +9900,29 @@ background: rgb(1 7 22 / 20%);
 
 @media (max-width: 600px) {
   .vivekam-dialog-container {
+    width: 95vw;
+    height: 500px;
     padding: 1.5rem;
     margin: 1rem;
   }
   
   .main-quote {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    min-height: 100px;
+  }
+  
+  .quote-subtitle {
+    font-size: 0.8rem;
+    min-height: 40px;
   }
   
   .vivekam-title {
     font-size: 1.6rem;
+  }
+  
+  .quote-container {
+    min-height: 180px;
+    max-height: 200px;
   }
 }
 
@@ -9767,6 +10033,28 @@ background: rgb(1 7 22 / 20%);
 @keyframes iconRotate {
   0% { transform: rotate(-5deg) scale(1); }
   100% { transform: rotate(5deg) scale(1.1); }
+}
+
+.tooltip-trades-compact .no-events-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 120px;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  text-align: center;
+}
+
+.no-events-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.4;
+}
+
+.no-events-text {
+  font-size: 0.8rem;
 }
 
 .stock-quantity-anim {
@@ -10211,5 +10499,257 @@ background: rgb(1 7 22 / 20%);
     border-color: #3b82f6;
     box-shadow: 0 0 40px rgba(59, 130, 246, 1.0);
   }
+}
+
+/* Exit Confirmation Dialog */
+.exit-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: dialogFadeIn 0.3s ease-out;
+}
+
+.exit-dialog-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.exit-dialog-container {
+  position: relative;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 
+    0 25px 75px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(239, 68, 68, 0.2);
+  animation: exitDialogSlideIn 0.4s ease-out;
+  text-align: center;
+}
+
+@keyframes exitDialogSlideIn {
+  0% { 
+    transform: scale(0.8) translateY(30px);
+    opacity: 0;
+  }
+  100% { 
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.exit-dialog-header {
+  margin-bottom: 1.5rem;
+}
+
+.exit-icon {
+  font-size: 3rem;
+  margin-bottom: 0.8rem;
+  filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.3));
+  animation: exitIconPulse 2s infinite ease-in-out;
+}
+
+@keyframes exitIconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.exit-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #dc2626;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 1px 2px rgba(220, 38, 38, 0.2);
+}
+
+.exit-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 600;
+}
+
+.exit-message-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: rgba(254, 242, 242, 0.8);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+.exit-warning-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+}
+
+.exit-message {
+  text-align: left;
+  flex: 1;
+}
+
+.exit-main-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 0 0 0.3rem 0;
+  line-height: 1.4;
+}
+
+.exit-sub-text {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.exit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.exit-btn {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: 0.8rem;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.2);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #64748b, #94a3b8);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.cancel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.2rem rgba(100, 116, 139, 0.4);
+  background: linear-gradient(135deg, #475569, #64748b);
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.2rem rgba(220, 38, 38, 0.5);
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+}
+
+.exit-btn .btn-icon {
+  font-size: 1rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.exit-btn .btn-text {
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.exit-dialog-footer {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 1rem;
+}
+
+.footer-note {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .exit-dialog-container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .exit-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  
+  .exit-title {
+    font-size: 1.3rem;
+  }
+  
+  .exit-icon {
+    font-size: 2.5rem;
+  }
+}
+
+/* Disable interactions with background content */
+.journey-view:has(.exit-dialog-overlay) > *:not(.exit-dialog-overlay) {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Cash highlight animation when sell animation reaches it */
+.cash-amount.highlight {
+  animation: cashHighlight 1s ease-out;
+}
+
+@keyframes cashHighlight {
+  0% { 
+    transform: scale(1);
+    color: #4ade80;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 10px rgba(74, 222, 128, 0.6);
+  }
+  50% { 
+    transform: scale(1.15);
+    color: #22c55e;
+    text-shadow: 
+      0 1px 4px rgba(0, 0, 0, 0.8), 
+      0 0 20px rgba(34, 197, 94, 0.8),
+      0 0 30px rgba(74, 222, 128, 0.6);
+  }
+  100% { 
+    transform: scale(1);
+    color: #4ade80;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 10px rgba(74, 222, 128, 0.6);
+  }
+}
+
+/* Enhanced sell animation trail effect */
+.animated-stock-card.exiting .stock-card-trail::before,
+.animated-stock-card.exiting .stock-card-trail::after {
+  background: #ef4444;
+  animation-duration: 1.5s; /* Longer trail for slower animation */
 }
 </style>
