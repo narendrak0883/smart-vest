@@ -163,10 +163,7 @@ export const useInvestmentStore = defineStore('investment', {
       return state.currentDayIndex === state.journeyDays.length - 1;
     },
     
-    currentDayEvents: (state): PortfolioEvent[] => {
-      return state.journeyDays[state.currentDayIndex].events;
-    },
-    
+ 
     finalPerformance: (state): string => {
       const finalDay = state.journeyDays[state.journeyDays.length - 1];
       return `+${finalDay.portfolio.percentChange.toFixed(1)}%`;
