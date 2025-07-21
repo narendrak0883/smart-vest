@@ -78,6 +78,7 @@ router.onError((error) => {
 * {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Internet Explorer 10+ */
+  box-sizing: border-box; /* Better sizing */
 }
 
 *::-webkit-scrollbar {
@@ -88,23 +89,26 @@ router.onError((error) => {
 
 html, body {
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
 #app {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Inter", Sans-serif;
   margin: 0;
   padding: 0;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height */
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
-/* COMPACT FIXED HEADER */
+/* IMPROVED FIXED HEADER */
 .app-header {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3b82f6 100%);
   padding: 0.5rem 1rem;
@@ -116,10 +120,16 @@ html, body {
   right: 0;
   z-index: 1000;
   border-bottom: 2px solid #60a5fa;
-  height: 50px;
+  height: auto; /* Flexible height */
+  min-height: 50px; /* Minimum height */
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  /* Safe area support for notched devices */
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: max(0.5rem, env(safe-area-inset-top));
 }
 
 .app-header::before {
@@ -212,16 +222,26 @@ html, body {
   60% { transform: translateY(-2px); }
 }
 
-/* ROUTER CONTAINER */
+/* IMPROVED ROUTER CONTAINER */
 .router-container {
   flex: 1;
-  margin-top: 60px;
-  overflow: hidden;
-  height: calc(100vh - 60px);
+  padding-top: 60px; /* Use padding instead of margin */
+  overflow: auto; /* Allow scrolling if content is too tall */
+  min-height: 0; /* Allow shrinking */
+  width: 100%;
+  position: relative;
+  /* Safe area support */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .route-component {
   height: 100%;
+  min-height: calc(100vh - 60px); /* Ensure minimum height */
+  min-height: calc(100dvh - 60px); /* Dynamic viewport height */
+  width: 100%;
+  overflow: auto; /* Allow scrolling within component */
 }
 
 .no-component {
@@ -236,40 +256,65 @@ html, body {
   margin: 20px;
 }
 
-/* RESPONSIVE DESIGN */
-@media (max-width: 768px) {
+/* JOURNEY COMPONENT FIXES */
+.journey-view {
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+/* ENHANCED RESPONSIVE DESIGN */
+
+/* Very small phones (portrait) - 320px and below */
+@media (max-width: 320px) {
   .app-header {
-    padding: 0.4rem 0.8rem;
-    height: 45px;
+    padding: 0.2rem 0.3rem;
+    min-height: 35px;
+    padding-left: max(0.3rem, env(safe-area-inset-left));
+    padding-right: max(0.3rem, env(safe-area-inset-right));
   }
   
   .header-content {
-    gap: 0.8rem;
+    gap: 0.3rem;
   }
   
   .app-title {
-    font-size: 1rem;
-    letter-spacing: 1px;
+    font-size: 0.8rem;
+    letter-spacing: 0.3px;
   }
   
   .app-subtitle {
-    font-size: 0.55rem;
+    font-size: 0.45rem;
   }
   
   .rupee {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
   }
   
   .router-container {
-    margin-top: 55px;
-    height: calc(100vh - 55px);
+    padding-top: 45px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 45px);
+    min-height: calc(100dvh - 45px);
+  }
+  
+  .journey-view {
+    padding: 0.2rem;
   }
 }
 
+/* Small phones (landscape) and large phones (portrait) */
 @media (max-width: 480px) {
   .app-header {
     padding: 0.3rem 0.5rem;
-    height: 40px;
+    min-height: 40px;
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
   }
   
   .header-content {
@@ -290,8 +335,250 @@ html, body {
   }
   
   .router-container {
-    margin-top: 50px;
-    height: calc(100vh - 50px);
+    padding-top: 50px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 50px);
+    min-height: calc(100dvh - 50px);
+  }
+  
+  .journey-view {
+    padding: 0.2rem;
+  }
+}
+
+/* Medium phones and small tablets */
+@media (max-width: 600px) {
+  .app-header {
+    padding: 0.35rem 0.6rem;
+    min-height: 42px;
+  }
+  
+  .app-title {
+    font-size: 0.95rem;
+    letter-spacing: 0.8px;
+  }
+  
+  .app-subtitle {
+    font-size: 0.52rem;
+  }
+  
+  .rupee {
+    font-size: 0.85rem;
+  }
+  
+  .router-container {
+    padding-top: 52px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
+  }
+  
+  .journey-view {
+    padding: 0.25rem;
+  }
+}
+
+/* Tablets (portrait) */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.4rem 0.8rem;
+    min-height: 45px;
+    padding-left: max(0.8rem, env(safe-area-inset-left));
+    padding-right: max(0.8rem, env(safe-area-inset-right));
+  }
+  
+  .header-content {
+    gap: 0.8rem;
+  }
+  
+  .app-title {
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+  
+  .app-subtitle {
+    font-size: 0.55rem;
+  }
+  
+  .rupee {
+    font-size: 0.9rem;
+  }
+  
+  .router-container {
+    padding-top: 55px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 55px);
+    min-height: calc(100dvh - 55px);
+  }
+  
+  .journey-view {
+    padding: 0.3rem;
+  }
+}
+
+/* Large tablets */
+@media (max-width: 1024px) {
+  .app-header {
+    min-height: 48px;
+    padding: 0.45rem 0.9rem;
+  }
+  
+  .app-title {
+    font-size: 1.1rem;
+    letter-spacing: 1.5px;
+  }
+  
+  .app-subtitle {
+    font-size: 0.58rem;
+  }
+  
+  .rupee {
+    font-size: 0.95rem;
+  }
+  
+  .router-container {
+    padding-top: 58px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 58px);
+    min-height: calc(100dvh - 58px);
+  }
+  
+  .journey-view {
+    padding: 0.4rem;
+  }
+}
+
+/* Default desktop styles (1024px and above) */
+@media (min-width: 1025px) {
+  .app-header {
+    padding: 0.5rem 1rem;
+    min-height: 50px;
+  }
+  
+  .header-content {
+    gap: 1rem;
+  }
+  
+  .app-title {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+  }
+  
+  .app-subtitle {
+    font-size: 0.6rem;
+  }
+  
+  .rupee {
+    font-size: 1rem;
+  }
+  
+  .router-container {
+    padding-top: 60px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 60px);
+    min-height: calc(100dvh - 60px);
+  }
+  
+  .journey-view {
+    padding: 0.5rem;
+  }
+}
+
+/* Very tall screens */
+@media (min-height: 900px) {
+  .app-header {
+    min-height: 55px;
+    padding: 0.6rem 1rem;
+  }
+  
+  .app-title {
+    font-size: 1.3rem;
+  }
+  
+  .app-subtitle {
+    font-size: 0.65rem;
+  }
+  
+  .router-container {
+    padding-top: 65px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 65px);
+    min-height: calc(100dvh - 65px);
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .app-header {
+    min-height: 35px;
+    padding: 0.3rem 0.8rem;
+  }
+  
+  .app-title {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+  
+  .app-subtitle {
+    font-size: 0.5rem;
+  }
+  
+  .rupee {
+    font-size: 0.8rem;
+  }
+  
+  .router-container {
+    padding-top: 45px;
+  }
+  
+  .route-component {
+    min-height: calc(100vh - 45px);
+    min-height: calc(100dvh - 45px);
+  }
+  
+  .journey-view {
+    padding: 0.2rem;
+  }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1400px) {
+  .header-content {
+    max-width: 1000px;
+  }
+  
+  .app-title {
+    font-size: 1.4rem;
+    letter-spacing: 2.5px;
+  }
+  
+  .app-subtitle {
+    font-size: 0.7rem;
+  }
+  
+  .rupee {
+    font-size: 1.1rem;
+  }
+}
+
+/* High DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .app-title {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -302,7 +589,48 @@ html {
 
 /* FOCUS STYLES FOR ACCESSIBILITY */
 .rupee:focus {
-  outline: 1px solid #fbbf24;
-  outline-offset: 1px;
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* PRINT STYLES */
+@media print {
+  .app-header {
+    position: static;
+    box-shadow: none;
+    background: #1e3c72 !important;
+    color: white !important;
+  }
+  
+  .router-container {
+    padding-top: 0;
+  }
+  
+  .rupee {
+    animation: none;
+  }
+}
+
+/* REDUCED MOTION SUPPORT */
+@media (prefers-reduced-motion: reduce) {
+  .rupee,
+  .app-title,
+  .app-header::before {
+    animation: none;
+  }
+  
+  .rupee:hover {
+    transform: none;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* DARK MODE SUPPORT (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  /* Styles can be added here if dark mode is implemented */
 }
 </style>

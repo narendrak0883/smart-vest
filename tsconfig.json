@@ -2,7 +2,6 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": ["env.d.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "exclude": ["src/**/*.js", "src/**/__tests__/*"],
-
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
@@ -13,6 +12,7 @@
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "allowJs": true,
   }
 }

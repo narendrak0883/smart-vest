@@ -6,39 +6,70 @@
     <div class="loading-background-blur"></div>
     
     <!-- Centered Loading Content -->
-    <div class="loading-content-container">
-      <!-- Loading Spinner -->
-      <div class="loading-spinner-container">
-        <div class="loading-spinner-enhanced">
-          <div class="spinner-ring-enhanced"></div>
-          <div class="spinner-ring-enhanced"></div>
-          <div class="spinner-ring-enhanced"></div>
+      <div class="loading-content-container">
+        <!-- Educational Message Display -->
+        <div v-if="getCurrentEducationalMessage()" class="educational-message-section">
+          <div class="educational-icon">
+            {{ getCurrentEducationalMessage().icon }}
+          </div>
+          <h3 class="educational-title">
+            {{ getCurrentEducationalMessage().title }}
+          </h3>
+          <div class="educational-content">
+            {{ getCurrentEducationalMessage().content }}
+          </div>
+          <div class="educational-subtitle">
+            {{ getCurrentEducationalMessage().subtitle }}
+          </div>
+          
+          <!-- Message Progress Bar -->
+          <div class="educational-progress">
+            <div class="educational-progress-bar">
+              <div 
+                class="educational-progress-fill" 
+                :style="{ width: totalEducationalProgress + '%' }"
+              ></div>
+            </div>
+            <div class="educational-progress-text">
+              {{ Math.round(totalEducationalProgress) }}% - Learning in Progress
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner-container">
+          <div class="loading-spinner-enhanced">
+            <div class="spinner-ring-enhanced"></div>
+            <div class="spinner-ring-enhanced"></div>
+            <div class="spinner-ring-enhanced"></div>
+          </div>
+        </div>
+        
+        <!-- Dynamic Loading Message -->
+        <div class="loading-message-container">
+          <h3 class="loading-title-enhanced">{{ loadingMessage || 'Processing...' }}</h3>
+          <p class="loading-subtitle-enhanced">
+            {{ getPhaseSubtitle() }}
+          </p>
+        </div>
+        
+        <!-- Loading Progress Dots -->
+        <div class="loading-progress-dots-enhanced">
+          <span class="dot-enhanced"></span>
+          <span class="dot-enhanced"></span>
+          <span class="dot-enhanced"></span>
+          <span class="dot-enhanced"></span>
+        </div>
+        
+        <!-- Vivekam Branding -->
+        <div class="loading-footer-enhanced">
+          <div class="loading-vivekam-logo">
+            <span class="loading-logo-icon">📈</span>
+            <span class="loading-logo-text">Vivekam</span>
+          </div>
+          <p class="loading-footer-text">SEBI Registered Investment Advisory</p>
         </div>
       </div>
-      
-      <!-- Loading Message -->
-      <div class="loading-message-container">
-        <h3 class="loading-title-enhanced">{{ loadingMessage || 'Processing...' }}</h3>
-        <p class="loading-subtitle-enhanced">Please wait while we process your request</p>
-      </div>
-      
-      <!-- Loading Progress Dots -->
-      <div class="loading-progress-dots-enhanced">
-        <span class="dot-enhanced"></span>
-        <span class="dot-enhanced"></span>
-        <span class="dot-enhanced"></span>
-        <span class="dot-enhanced"></span>
-      </div>
-      
-      <!-- Vivekam Branding -->
-      <div class="loading-footer-enhanced">
-        <div class="loading-vivekam-logo">
-          <span class="loading-logo-icon">📈</span>
-          <span class="loading-logo-text">Vivekam</span>
-        </div>
-        <p class="loading-footer-text">SEBI Registered Investment Advisory</p>
-      </div>
-    </div>
   </div>
 
   <!-- Vivekam Quotes Dialog for Five Year Term -->
@@ -248,6 +279,9 @@
             <div class="panel-header-combined">
               <div class="combined-title-row">
                 <h3 class="panel-title-main">{{ formatDateShort(startDisplayDate) }} HOLDINGS</h3>
+                <span v-if="isPortfolioAnimating" class="animation-indicator">
+                  🎬 Updating...
+                </span>
                         <span class="count-badge stocks-count">
                   <span class="count-icon">📊</span>
                       <span class="count-text">{{ startDisplayStocks.length }}</span>
@@ -801,39 +835,56 @@
                   <span class="total-value">{{ totalDays }} days</span>
                 </div>
 
+                  <div v-if="showMultiplierOption || shouldShowMultiplier" class="multiplier-ultra-compact">
+                    <span class="multiplier-label-mini">🔢</span>
+                    <select v-model="diceMultiplier" class="multiplier-dropdown">
+                      <option v-for="multiplier in availableMultipliers" :key="multiplier" :value="multiplier">
+                        ×{{ multiplier }}
+                      </option>
+                    </select>
+                    <span class="multiplier-info-mini">days per point</span>
+                  </div>
+                  
                 <!-- Add clarification text -->
                 <div class="dice-info-text">
                   <span class="info-icon">ℹ️</span>
-                  <span class="info-text">Journey uses latest roll: {{ diceRolls.length > 0 ? diceRolls[diceRolls.length - 1] : 0 }} × 5 days</span>
-                </div>
+                  <span class="info-text">
+                    {{ hasFiveYearTermCompleted 
+                      ? `Journey uses latest roll: ${diceRolls.length > 0 ? diceRolls[diceRolls.length - 1] : 0} × ${diceMultiplier} days (Post Five-Year)` 
+                      : `Journey uses latest roll: ${diceRolls.length > 0 ? diceRolls[diceRolls.length - 1] : 0} × ${diceMultiplier} days` }}
+                  </span>
+               </div>
               </div>
 
               <div class="journey-control-buttons">
                 <div class="control-buttons-header">
                   <h5 class="control-title">Journey Options</h5>
-                  <p class="control-subtitle">
-                    {{ diceRollCount < 3 ? 'Available after 3 dice rolls' : 
-                      !hasFiveYearTermCompleted ? 'Start with Five Year Term' : 'Choose your next action' }}
-                  </p>
+                    <p class="control-subtitle">
+                      {{ diceRollCount < 3 ? 'Available after 3 dice rolls' : 
+                        hasFiveYearTermBeenUsed && !hasFiveYearTermCompleted ? 'Five Year Term in progress...' :
+                        !hasFiveYearTermCompleted ? 'Start with Five Year Term' : 'Choose your next action' }}
+                    </p>
                 </div>
           
                 <div class="control-buttons-grid">
                   <button 
                     class="journey-control-btn five-year-btn"
                     @click="handleFiveYearTerm"
-                    :disabled="diceRollCount < 3 || isRolling || isJourneyDataLoading"
+                    :disabled="diceRollCount < 3 || isRolling || isJourneyDataLoading || hasFiveYearTermBeenUsed"
                     :class="{ 
-                      'enabled': diceRollCount >= 3 && !isJourneyDataLoading,
-                      'loading': isJourneyDataLoading && rollingType === 'F'
-                    }"
+                    'enabled': diceRollCount >= 3 && !isJourneyDataLoading && !hasFiveYearTermBeenUsed,
+                    'loading': isJourneyDataLoading && rollingType === 'F'
+                  }"
                   >
                     <span class="control-btn-icon">{{ isJourneyDataLoading && rollingType === 'F' ? '⏳' : '📅' }}</span>
-                    <span class="control-btn-text">
-                      {{ isJourneyDataLoading && rollingType === 'F' ? 'Processing...' : 'Five Year Term' }}
-                    </span>
-                    <span class="control-btn-subtitle">
-                      {{ isJourneyDataLoading && rollingType === 'F' ? 'Please wait' : 'Long-term journey' }}
-                    </span>
+                      <span class="control-btn-text">
+                        {{ isJourneyDataLoading && rollingType === 'F' ? 'Processing...' : 
+                          hasFiveYearTermBeenUsed ? 'Five Year Used' : 'Five Year Term' }}
+                      </span>
+                      <span class="control-btn-subtitle">
+                        {{ isJourneyDataLoading && rollingType === 'F' ? 'Please wait' : 
+                          hasFiveYearTermBeenUsed ? 'Already completed' : 'Long-term journey' }}
+                      </span>
                   </button>
                   
                   <button 
@@ -856,10 +907,15 @@
                   </button>
                 </div>
 
-                <div v-if="diceRollCount < 3" class="unlock-message">
-                  <span class="unlock-icon">🔒</span>
-                  <span class="unlock-text">{{ 3 - diceRollCount }} more rolls to unlock options</span>
-                </div>
+                  <div v-if="diceRollCount < 3" class="unlock-message">
+                    <span class="unlock-icon">🔒</span>
+                    <span class="unlock-text">{{ 3 - diceRollCount }} more rolls to unlock options</span>
+                  </div>
+
+                  <div v-if="hasFiveYearTermCompleted && diceRollCount >= 3" class="unlock-message" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3);">
+                    <span class="unlock-icon">✅</span>
+                    <span class="unlock-text" style="color: #16a34a;">Five Year Term completed! Continue rolling dice to extend your journey</span>
+                  </div>
                 
                 <div v-if="journeyError" class="error-message">
                   <span class="error-icon">⚠️</span>
@@ -1288,12 +1344,15 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';;
 const API_ENDPOINTS = {
-  SMARTVEST_DATA: 'api/mobile/Getsmartvestdata'
+  SMARTVEST_DATA: '/api/mobile/Getsmartvestdata'
 };
 
 const activeAnimations = ref([])
 const animationCounter = ref(0)
 const isAnimating = ref(false)
+const isPortfolioAnimating = ref(false);
+const preAnimationDayIndex = ref(null);
+const animationStartTime = ref(null);
 
 const animationConfig = {
   duration: 2000,
@@ -1310,6 +1369,10 @@ const canCloseDialog = ref(false)
 const quoteInterval = ref(null)
 const apiCompleted = ref(false)
 const showExitDialog = ref(false);
+// Add these new reactive variables
+const diceMultiplier = ref(5); // Default multiplier
+const showMultiplierOption = ref(false); // Show option after 3 rolls
+const availableMultipliers = ref([5, 10, 15, 20, 25, 30, 35, 40, 45, 50]);
 
 // Vivekam inspirational quotes
 const fiveYearQuotes = ref([
@@ -1349,6 +1412,203 @@ const endJourneyQuotes = ref([
     subtitle: "Continue building wealth with proven strategies"
   }
 ]);
+
+// Add this after your existing reactive variables
+const educationalMessages = {
+  startup: [
+    {
+      title: "Welcome to Smart Investing",
+      content: "Ever wonder, how can you see the way wealth is built step by step?",
+      subtitle: "Get ready to explore the Vivekam way",
+      icon: "🎯",
+      duration: 3000
+    },
+    {
+      title: "Rule-Based Investing", 
+      content: "All that we need is make sure you are serious to learn. We're opening up our magic box of lifetime learning.",
+      subtitle: "Transparency in every decision",
+      icon: "📚",
+      duration: 3500
+    },
+    {
+      title: "Arthur C Clarke's Wisdom",
+      content: "Any sufficiently advanced technology is indistinguishable from magic",
+      subtitle: "To unravel the magic, we request you to be just a bit patient!",
+      icon: "✨",
+      duration: 3000
+    },
+    {
+      title: "Traditional vs Vivekam",
+      content: "The traditional wealth management industry focuses on post-facto transparency with reports and dashboards.",
+      subtitle: "But we believe in writing down the rules of engagement",
+      icon: "🔄",
+      duration: 4000
+    },
+    {
+      title: "Interactive Learning",
+      content: "No one allows interactive exploration or educational walkthroughs of every buy/sell actions.",
+      subtitle: "Vivekam shows you every step of the journey",
+      icon: "🎮",
+      duration: 3500
+    }
+  ],
+  fiveYear: [
+    {
+      title: "Five Year Journey Starting",
+      content: "You're about to experience 5 years of systematic investing in just minutes.",
+      subtitle: "Watch how patience and discipline build wealth",
+      icon: "📅",
+      duration: 3000
+    },
+    {
+      title: "Key Investment Rules",
+      content: "NOBUY period: We observe 1 month after calendar quarter awaiting latest results.",
+      subtitle: "Portfolio Diversification: Not more than 20% in one sector",
+      icon: "⚡",
+      duration: 4000
+    },
+    {
+      title: "Smart Exit Strategy",
+      content: "Fair Price exit: Stocks are sold if they touch fair price, before new information comes in.",
+      subtitle: "Poor results exit: If stocks report poor performance, we exit them too",
+      icon: "🎯",
+      duration: 4000
+    },
+    {
+      title: "Liquid Management", 
+      content: "When stock rises too fast with market, sold value will be parked in liquid bees earning interest.",
+      subtitle: "Till next quarterly results are out for good number of stocks",
+      icon: "💧",
+      duration: 3500
+    }
+  ],
+  endJourney: [
+    {
+      title: "Journey Completion",
+      content: "You've witnessed the power of systematic, rule-based investing over time.",
+      subtitle: "Every decision was based on data, not emotion",
+      icon: "🏁", 
+      duration: 3000
+    },
+    {
+      title: "Key Learnings",
+      content: "Here, you got to know details of when a stock is added to portfolio, when exited and what replaced it.",
+      subtitle: "Complete transparency in every transaction",
+      icon: "📊",
+      duration: 4000
+    },
+    {
+      title: "Performance Tracking",
+      content: "You watched Dividends, Capital Gains, Nifty change and Portfolio Change in real-time.",
+      subtitle: "This is how wealth is built systematically",
+      icon: "📈",
+      duration: 3500
+    },
+    {
+      title: "Ready for Real Investing?",
+      content: "You may opt for daily transaction and tracking of portfolio data to be mailed to you.",
+      subtitle: "REWARD: Complete journey twice for ₹1,000 towards advisory services",
+      icon: "🎁",
+      duration: 4000
+    }
+  ],
+  closing: [
+    {
+      title: "Thank You",
+      content: "You are welcome to play the game as many times as you wish.",
+      subtitle: "Encourage friends to understand the power of well defined rule driven process",
+      icon: "🙏",
+      duration: 2500
+    },
+    {
+      title: "Superior Results",
+      content: "See how it delivers much superior results than most peers.",
+      subtitle: "Participate, play, learn, earn and enjoy your financial future",
+      icon: "🏆",
+      duration: 3000
+    }
+  ]
+};
+
+// Add reactive variables for message cycling
+const currentEducationalPhase = ref('startup');
+const currentEducationalIndex = ref(0);
+const educationalInterval = ref(null);
+const totalEducationalProgress = ref(0);
+const hasFiveYearTermBeenUsed = ref(false);
+
+const startEducationalMessages = (phase) => {
+  console.log(`🎓 Starting educational messages for phase: ${phase}`);
+  
+  currentEducationalPhase.value = phase;
+  currentEducationalIndex.value = 0;
+  totalEducationalProgress.value = 0;
+  
+  // Clear any existing interval
+  if (educationalInterval.value) {
+    clearInterval(educationalInterval.value);
+  }
+  
+  const messages = educationalMessages[phase];
+  if (!messages || messages.length === 0) return;
+  
+  let messageStartTime = Date.now();
+  
+  educationalInterval.value = setInterval(() => {
+    const currentMessage = messages[currentEducationalIndex.value];
+    const elapsed = Date.now() - messageStartTime;
+    const messageProgress = Math.min((elapsed / currentMessage.duration) * 100, 100);
+    
+    totalEducationalProgress.value = 
+      ((currentEducationalIndex.value / messages.length) * 100) + 
+      (messageProgress / messages.length);
+    
+    if (elapsed >= currentMessage.duration) {
+      currentEducationalIndex.value++;
+      messageStartTime = Date.now();
+      
+      if (currentEducationalIndex.value >= messages.length) {
+        // Cycle back to start for continuous display
+        currentEducationalIndex.value = 0;
+        totalEducationalProgress.value = 100;
+      }
+    }
+  }, 100);
+};
+
+const getEndDateForAPI = () => {
+  if (!journeySetup.value.startDate) return new Date().toISOString().split('T')[0];
+  
+  let daysToAdd;
+  if (rollingType.value === 'F') {
+    daysToAdd = 1250; // 5 years of trading days
+  } else if (rollingType.value === 'E') {
+    daysToAdd = Math.max(totalDays.value, 30);
+} else {
+  // For normal dice rolling, use only the latest dice value × custom multiplier
+  const latestDiceValue = diceRolls.value.length > 0 ? 
+    diceRolls.value[diceRolls.value.length - 1] : 5;
+  daysToAdd = latestDiceValue * diceMultiplier.value;
+}
+  
+  const startDate = new Date(journeySetup.value.startDate);
+  startDate.setDate(startDate.getDate() + daysToAdd - 1);
+  return startDate.toISOString().split('T')[0];
+};
+
+const stopEducationalMessages = () => {
+  if (educationalInterval.value) {
+    clearInterval(educationalInterval.value);
+    educationalInterval.value = null;
+  }
+  console.log('🎓 Stopped educational messages');
+};
+
+const getCurrentEducationalMessage = () => {
+  const messages = educationalMessages[currentEducationalPhase.value];
+  if (!messages || messages.length === 0) return null;
+  return messages[currentEducationalIndex.value];
+};
 
 const startVivekamQuotes = () => {
   showVivekamDialog.value = true
@@ -1456,15 +1716,10 @@ const timelineNavInfo = computed(() => {
 
 // Add this computed property after your existing computed properties
 const chartAxisConfig = computed(() => {
-  const currentRollingType = rollingType.value;
   const currentJourneyLength = journeyDays.value.length;
   
-  // More explicit long-term detection
-  const isLongTerm = (
-    currentRollingType === 'F' || 
-    currentRollingType === 'E' || 
-    currentJourneyLength > 1000 // Changed from 250 to 1000 to be more specific
-  );
+  // Show years if journey is more than 3 years (1095 days), otherwise show months
+  const isLongTerm = currentJourneyLength > 1095; // 3 years = 3 * 365 = 1095 days
   
   return {
     isLongTerm,
@@ -1475,7 +1730,6 @@ const chartAxisConfig = computed(() => {
       : Math.max(1, Math.ceil(currentJourneyLength / 30 / 8)) * 30
   };
 });
-
 
 const startDisplayCash = computed(() => {
   // PRIORITY 1: Manual selection - show previous day's cash
@@ -1492,12 +1746,18 @@ const startDisplayCash = computed(() => {
 });
 
 const handleFiveYearTerm = async () => {
-  if (diceRollCount.value < 3 || isRolling.value || isJourneyDataLoading.value || isFullScreenLoading.value) return;
+if (diceRollCount.value < 3 || isRolling.value || isJourneyDataLoading.value || isFullScreenLoading.value || hasFiveYearTermBeenUsed.value) return;
+
+// Mark Five Year Term as used
+hasFiveYearTermBeenUsed.value = true;
+  console.log('🎯 Five Year Term button clicked - showing educational content');
   
-  console.log('🎯 Five Year Term button clicked - showing Vivekam quotes');
+  // Show full-screen loading with five-year educational messages
+  isFullScreenLoading.value = true;
+  loadingMessage.value = 'Preparing Five Year Journey...';
   
-  // Show Vivekam quotes dialog instead of loading spinner
-  startVivekamQuotes();
+  // Start educational messages for five-year phase
+  startEducationalMessages('fiveYear');
   
   // Set rolling type
   rollingType.value = 'F';
@@ -1506,31 +1766,35 @@ const handleFiveYearTerm = async () => {
   try {
     await executeJourneyAction('Five Year Term');
     
-    // API completed - enable close button
-    enableDialogClose();
-    
-    // Force chart re-render
-    await nextTick();
-    console.log('🔄 Force re-rendering chart for 5-year data');
-    
-    if (performanceChart.value && journeyDays.value.length > 0) {
-      initializeChart();
-    }
-    
-    hasFiveYearTermCompleted.value = true;
-    console.log('✅ Five Year Term completed');
+    // Keep educational messages running longer for 5-year
+    setTimeout(() => {
+      stopEducationalMessages();
+      isFullScreenLoading.value = false;
+      loadingMessage.value = '';
+      
+      // Force chart re-render
+      nextTick(() => {
+        if (performanceChart.value && journeyDays.value.length > 0) {
+          initializeChart();
+        }
+      });
+      
+      hasFiveYearTermCompleted.value = true;
+      console.log('✅ Five Year Term completed');
+    }, 3000); // Longer time for educational content
     
   } catch (error) {
     console.error('Five Year Term failed:', error);
+    stopEducationalMessages();
+    isFullScreenLoading.value = false;
+    loadingMessage.value = '';
     rollingType.value = 'S';
     autoProgressEnabled.value = true;
-    
-    // Close dialog on error
-    closeVivekamDialog();
+    // Mark Five Year Term as used
+hasFiveYearTermBeenUsed.value = false;
     alert('Failed to process Five Year Term. Please try again.');
   }
 };
-
 
 // Paginated timeline events - using existing timelineStartIndex
 // In the paginatedTimelineEvents computed property
@@ -1682,14 +1946,17 @@ const goToLatestEvents = () => {
 const goToFirstEvents = () => {
   timelineStartIndex.value = 0;
 };
-
 const handleEndJourney = async () => {
   if (diceRollCount.value < 3 || isRolling.value || isJourneyDataLoading.value || !hasFiveYearTermCompleted.value || isFullScreenLoading.value) return;
   
-  console.log('🏁 End Journey button clicked - showing Vivekam quotes');
+  console.log('🏁 End Journey button clicked - showing completion educational content');
   
-  // Show Vivekam quotes dialog instead of loading spinner
-  startVivekamQuotes();
+  // Show full-screen loading with end journey educational messages
+  isFullScreenLoading.value = true;
+  loadingMessage.value = 'Finalizing Your Investment Journey...';
+  
+  // Start educational messages for end journey phase
+  startEducationalMessages('endJourney');
   
   // Set rolling type
   rollingType.value = 'E';
@@ -1698,26 +1965,29 @@ const handleEndJourney = async () => {
   try {
     await executeJourneyAction('End Journey');
     
-    // API completed - enable close button
-    enableDialogClose();
-    
-    // Force chart re-render
-    await nextTick();
-    console.log('🔄 Force re-rendering chart for end journey');
-    
-    if (performanceChart.value && journeyDays.value.length > 0) {
-      initializeChart();
-    }
-    
-    console.log('✅ End Journey completed');
+    // Keep educational messages running to show completion insights
+    setTimeout(() => {
+      stopEducationalMessages();
+      isFullScreenLoading.value = false;
+      loadingMessage.value = '';
+      
+      // Force chart re-render
+      nextTick(() => {
+        if (performanceChart.value && journeyDays.value.length > 0) {
+          initializeChart();
+        }
+      });
+      
+      console.log('✅ End Journey completed');
+    }, 4000); // Longer time for educational content
     
   } catch (error) {
     console.error('End Journey failed:', error);
+    stopEducationalMessages();
+    isFullScreenLoading.value = false;
+    loadingMessage.value = '';
     rollingType.value = 'S';
     autoProgressEnabled.value = true;
-    
-    // Close dialog on error
-    closeVivekamDialog();
     alert('Failed to end journey. Please try again.');
   }
 };
@@ -1863,7 +2133,7 @@ const fetchSmartVestData = async (payload) => {
     }
 
     const result = await response.json();
-    
+
     if (result.code !== "200") {
       throw new Error(result.message || 'API request failed');
     }
@@ -2298,6 +2568,34 @@ const updateAnimationStyle = (animationId, type, panelPositions) => {
   };
 };
 
+// Add this new function
+const triggerStockAnimationsWithCallback = async (events, onComplete) => {
+  if (isAnimating.value) return;
+  
+  isAnimating.value = true;
+  activeAnimations.value = [];
+  
+  console.log('🎬 Starting animations with callback for', events.length, 'events');
+  
+  const buyEvents = events.filter(e => e.type === 'BUY');
+  const sellEvents = events.filter(e => e.type === 'SELL');
+  const dividendEvents = events.filter(e => e.type === 'DIVIDEND');
+  
+  // Animate in sequence
+  await animateEventGroup(sellEvents, 'sell', 0);
+  await animateEventGroup(buyEvents, 'buy', 300);
+  await animateEventGroup(dividendEvents, 'dividend', 600);
+  
+  // Call completion callback after all animations finish
+  setTimeout(() => {
+    activeAnimations.value = [];
+    isAnimating.value = false;
+    if (onComplete) {
+      onComplete();
+    }
+  }, animationConfig.duration + 800);
+};
+
 const handleDayClick = async (day, event) => {
   console.log('🎯 User clicked on day:', day.day);
   
@@ -2306,31 +2604,63 @@ const handleDayClick = async (day, event) => {
   
   const currentTimelineStart = timelineStartIndex.value;
   
-  selectedDayIndex.value = day.day - 1;
-  currentDayIndex.value = day.day - 1;
-  showFinalResults.value = false;
-  isInitialEventsLocked.value = false;
+  // Store the current state before animation
+  preAnimationDayIndex.value = selectedDayIndex.value !== null ? selectedDayIndex.value : currentDayIndex.value;
   
-  // Reset pagination
-  eventsPage.value = 0;
-  startStockPage.value = 0;
-  finalStockPage.value = 0;
-  timelineStartIndex.value = currentTimelineStart;
-  
-  if (autoProgressEnabled.value) {
-    stopAutoProgression();
-    autoProgressEnabled.value = false;
-  }
-  
-  dayTooltip.value.visible = false;
-  dayTooltip.value.isPinned = false;
-  
-  // 🎬 TRIGGER ANIMATIONS
+  // Don't update portfolio values immediately - keep showing previous state during animation
   if (day.events && day.events.length > 0) {
-    await triggerStockAnimations(day.events);
+    isPortfolioAnimating.value = true;
+    animationStartTime.value = Date.now();
+    
+    // Reset pagination but don't update day indices yet
+    eventsPage.value = 0;
+    startStockPage.value = 0;
+    finalStockPage.value = 0;
+    timelineStartIndex.value = currentTimelineStart;
+    
+    if (autoProgressEnabled.value) {
+      stopAutoProgression();
+      autoProgressEnabled.value = false;
+    }
+    
+    dayTooltip.value.visible = false;
+    dayTooltip.value.isPinned = false;
+    
+    // Start animations and update values after completion
+    await triggerStockAnimationsWithCallback(day.events, () => {
+      // This callback runs after animations complete
+      selectedDayIndex.value = day.day - 1;
+      currentDayIndex.value = day.day - 1;
+      showFinalResults.value = false;
+      isInitialEventsLocked.value = false;
+      isPortfolioAnimating.value = false;
+      preAnimationDayIndex.value = null;
+      animationStartTime.value = null;
+      
+      console.log('✅ Portfolio values updated after animation completion');
+    });
+  } else {
+    // No animations, update immediately
+    selectedDayIndex.value = day.day - 1;
+    currentDayIndex.value = day.day - 1;
+    showFinalResults.value = false;
+    isInitialEventsLocked.value = false;
+    
+    // Reset pagination
+    eventsPage.value = 0;
+    startStockPage.value = 0;
+    finalStockPage.value = 0;
+    timelineStartIndex.value = currentTimelineStart;
+    
+    if (autoProgressEnabled.value) {
+      stopAutoProgression();
+      autoProgressEnabled.value = false;
+    }
+    
+    dayTooltip.value.visible = false;
+    dayTooltip.value.isPinned = false;
   }
 };
-
 const closeDayTooltip = () => {
   console.log('❌ Closing day tooltip');
   dayTooltip.value.visible = false;
@@ -2364,6 +2694,12 @@ const finalDisplayDate = computed(() => {
 
 // Final portfolio cash and components
 const finalDisplayValue = computed(() => {
+  // During animation, show the pre-animation state
+  if (isPortfolioAnimating.value && preAnimationDayIndex.value !== null) {
+    const preAnimationDay = journeyDays.value[preAnimationDayIndex.value];
+    return preAnimationDay?.portfolio?.totalValue || preAnimationDay?.smartVestData?.PortfolioValue || 0;
+  }
+  
   // PRIORITY 1: Manual selection overrides everything
   if (selectedDayIndex.value !== null) {
     const selectedDay = journeyDays.value[selectedDayIndex.value];
@@ -2379,6 +2715,12 @@ const finalDisplayValue = computed(() => {
 });
 
 const finalDisplayCash = computed(() => {
+  // During animation, show the pre-animation state
+  if (isPortfolioAnimating.value && preAnimationDayIndex.value !== null) {
+    const preAnimationDay = journeyDays.value[preAnimationDayIndex.value];
+    return preAnimationDay?.portfolio?.cash || preAnimationDay?.Cash || 0;
+  }
+  
   // PRIORITY 1: Manual selection overrides everything
   if (selectedDayIndex.value !== null) {
     const selectedDay = journeyDays.value[selectedDayIndex.value];
@@ -2394,6 +2736,12 @@ const finalDisplayCash = computed(() => {
 });
 
 const finalDisplayStocks = computed(() => {
+  // During animation, show the pre-animation state
+  if (isPortfolioAnimating.value && preAnimationDayIndex.value !== null) {
+    const preAnimationDay = journeyDays.value[preAnimationDayIndex.value];
+    return preAnimationDay?.portfolio?.holdings || [];
+  }
+  
   // PRIORITY 1: Manual selection overrides everything
   if (selectedDayIndex.value !== null) {
     const selectedDay = journeyDays.value[selectedDayIndex.value];
@@ -2441,9 +2789,9 @@ const isSetupComplete = computed(() => {
 const totalDays = computed(() => {
   if (diceRolls.value.length === 0) return 5; // Base 5 days if no rolls
   
-  // Use only the latest dice roll value × 5, not the sum
+  // Use only the latest dice roll value × custom multiplier
   const latestRoll = diceRolls.value[diceRolls.value.length - 1];
-  return latestRoll * 5;
+  return latestRoll * diceMultiplier.value;
 });
 
 const selectedProductName = computed(() => {
@@ -2615,18 +2963,15 @@ const formatXAxisLabel = (date, labelType) => {
 const getXAxisLabels = () => {
   if (journeyDays.value.length === 0) return [];
   
-  const isDefinitelyLongTerm = (
-    rollingType.value === 'F' || 
-    rollingType.value === 'E' || 
-    journeyDays.value.length > 1000
-  );
+  // Use days count to determine label type: >3 years = years, <=3 years = months
+  const isDefinitelyLongTerm = journeyDays.value.length > 1095; // 3 years = 1095 days
   
   const forcedLabelType = isDefinitelyLongTerm ? 'years' : 'months';
   
-  console.log('🏷️ getXAxisLabels:');
-  console.log('- rollingType:', rollingType.value);
-  console.log('- journeyDays.length:', journeyDays.value.length);
-  console.log('- labelType:', forcedLabelType);
+console.log('🏷️ getXAxisLabels:');
+console.log('- journeyDays.length:', journeyDays.value.length);
+console.log('- isLongTerm (>1095 days):', isDefinitelyLongTerm);
+console.log('- labelType:', forcedLabelType);
   
   const labels = [];
   
@@ -3057,12 +3402,33 @@ const getParticleStyle = (index) => {
   };
 };
 
+const getQuoteCycleDuration = (phase) => {
+  const messages = educationalMessages[phase];
+  if (!messages || messages.length === 0) return 0;
+  
+  return messages.reduce((total, message) => total + message.duration, 0);
+};
+
+const waitForQuoteCycle = (phase) => {
+  return new Promise((resolve) => {
+    const totalDuration = getQuoteCycleDuration(phase);
+    console.log(`⏱️ Waiting for ${phase} quotes cycle: ${totalDuration}ms`);
+    
+    setTimeout(() => {
+      resolve();
+    }, totalDuration);
+  });
+};
+
 const rollDice = async () => {
   if (isRolling.value || isFullScreenLoading.value) return;
   
-  // Show full-screen loading
+  // Show full-screen loading with educational messages
   isFullScreenLoading.value = true;
-  loadingMessage.value = 'Rolling Dice & Starting Journey...';  
+  loadingMessage.value = 'Rolling Dice & Preparing Your Journey...';
+  
+  // Start educational messages for startup phase
+  startEducationalMessages('startup');
 
   isRolling.value = true;
   
@@ -3078,56 +3444,7 @@ const rollDice = async () => {
     });
   }, 50);
   
-  setTimeout(() => {
-    clearInterval(rollInterval);
-    
-    const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
-    const total = finalValues.reduce((sum, val) => sum + val, 0);
-    
-    activeDice.value.forEach((dice, index) => {
-      dice.value = finalValues[index];
-      dice.isRolling = false;
-    });
-    
-    diceRolls.value.push(total);
-    isRolling.value = false;
-    
-    // Hide loading after dice animation
-    setTimeout(() => {
-      isFullScreenLoading.value = false;
-      loadingMessage.value = '';
-      
-      if (diceRolls.value.length === 1) {
-        startInvestmentJourney();
-      }
-    }, 500);
-  }, 1000);
-};
-
-const rollDiceFromJourney = async () => {
-  if (isRolling.value || isFullScreenLoading.value) return;
-  
-  // Show full-screen loading
-  isFullScreenLoading.value = true;
-  loadingMessage.value = 'Rolling Dice & Extending Journey...';
-
-  isRolling.value = true;
-  
-  // Stop current auto-progression
-  stopAutoProgression();
-  
-  // Set all dice to rolling state immediately
-  activeDice.value.forEach(dice => {
-    dice.isRolling = true;
-  });
-  
-  // Show random values quickly while rolling
-  const rollInterval = setInterval(() => {
-    activeDice.value.forEach(dice => {
-      dice.value = Math.floor(Math.random() * 6) + 1;
-    });
-  }, 150);
-  
+  // First, finish the dice rolling animation
   setTimeout(async () => {
     clearInterval(rollInterval);
     
@@ -3140,6 +3457,101 @@ const rollDiceFromJourney = async () => {
     });
     
     diceRolls.value.push(total);
+
+    isRolling.value = false;
+    
+    console.log('🎲 Dice rolling completed, now showing complete educational cycle');
+    
+    // Update loading message to indicate learning phase
+    loadingMessage.value = 'Learning Smart Investment Principles...';
+    
+    // Wait for the COMPLETE cycle of educational messages
+    if (diceRolls.value.length === 1) {
+      console.log('🎓 First dice roll - showing complete educational cycle');
+      
+      try {
+        // Wait for complete quote cycle before proceeding
+        await waitForQuoteCycle('startup');
+        
+        console.log('✅ Educational cycle completed, starting investment journey');
+        
+        // Update loading message for journey preparation
+        loadingMessage.value = 'Preparing Your Investment Journey...';
+        
+        // Stop educational messages
+        stopEducationalMessages();
+        
+        // Start the investment journey
+        await startInvestmentJourney();
+        
+        // Hide loading after journey is ready
+        setTimeout(() => {
+          isFullScreenLoading.value = false;
+          loadingMessage.value = '';
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Error during educational cycle or journey start:', error);
+        stopEducationalMessages();
+        isFullScreenLoading.value = false;
+        loadingMessage.value = '';
+      }
+    } else {
+      // For subsequent dice rolls, shorter duration
+      setTimeout(() => {
+        stopEducationalMessages();
+        isFullScreenLoading.value = false;
+        loadingMessage.value = '';
+      }, 2000);
+    }
+  }, 1000);
+};
+
+const rollDiceFromJourney = async () => {
+  if (isRolling.value || isFullScreenLoading.value) return;
+  
+  // Show full-screen loading
+  isFullScreenLoading.value = true;
+  loadingMessage.value = 'Rolling Dice & Extending Journey...';
+  
+  // Start educational messages for dice extension
+  startEducationalMessages('startup');
+
+  isRolling.value = true;
+  
+  // Stop current auto-progression
+  stopAutoProgression();
+  
+  // Set all dice to rolling state immediately
+  activeDice.value.forEach(dice => {
+    dice.isRolling = true;
+  });
+  
+  // Show random values quickly while rolling - DEFINE rollInterval here
+  const rollInterval = setInterval(() => {
+    activeDice.value.forEach(dice => {
+      dice.value = Math.floor(Math.random() * 6) + 1;
+    });
+  }, 150);
+  
+  setTimeout(async () => {
+    clearInterval(rollInterval); // Now rollInterval is properly defined
+    
+    const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
+    const total = finalValues.reduce((sum, val) => sum + val, 0);
+    
+    activeDice.value.forEach((dice, index) => {
+      dice.value = finalValues[index];
+      dice.isRolling = false;
+    });
+    
+    diceRolls.value.push(total);
+
+        // Show multiplier option after 3 rolls
+    if (diceRolls.value.length >= 3) {
+      showMultiplierOption.value = true;
+    }
+    
     diceRollCount.value++;
     isRolling.value = false;
     
@@ -3150,8 +3562,8 @@ const rollDiceFromJourney = async () => {
     const currentProgress = currentDayIndex.value;
     
     try {
-      // Set rolling type to 'S' for normal dice rolling
-      rollingType.value = 'S';
+ // Set rolling type to 'S' for normal dice rolling (this allows continued rolling after Five Year Term)
+    rollingType.value = 'S';
       
       // Regenerate journey data with extended days
       await generateJourneyData();
@@ -3162,7 +3574,8 @@ const rollDiceFromJourney = async () => {
       nextTick(() => {
         initializeChart();
         
-        // Hide loading
+        // Stop educational messages and hide loading
+        stopEducationalMessages();
         isFullScreenLoading.value = false;
         loadingMessage.value = '';
         
@@ -3175,6 +3588,7 @@ const rollDiceFromJourney = async () => {
       });
     } catch (error) {
       console.error('Error extending journey:', error);
+      stopEducationalMessages();
       isFullScreenLoading.value = false;
       loadingMessage.value = '';
       alert('Failed to extend journey. Please try again.');
@@ -3183,7 +3597,8 @@ const rollDiceFromJourney = async () => {
 };
 
 const startInvestmentJourney = async () => {
-  isJourneyDataLoading.value = true;
+  // Remove the loading state management since it's handled in rollDice
+  // isJourneyDataLoading.value = true; // Remove this line
   journeyError.value = null;
   isJourneyCompleting.value = false;
   
@@ -3214,20 +3629,25 @@ const startInvestmentJourney = async () => {
     nextTick(() => {
       setTimeout(() => {
         initializeChart();
-        isJourneyDataLoading.value = false;
+        // isJourneyDataLoading.value = false; // Remove this line
         
         // CRITICAL: Start auto-progression immediately, no delay
         console.log('🚀 Starting auto-progression immediately');
         autoProgressEnabled.value = true;
         startAutoProgression();
-      },100)
+      }, 100);
     });
   } catch (error) {
     console.error('Error starting investment journey:', error);
-    isJourneyDataLoading.value = false;
+    // isJourneyDataLoading.value = false; // Remove this line
     journeyError.value = error.message || 'Failed to load investment data';
+    
+    // Hide loading on error
+    isFullScreenLoading.value = false;
+    loadingMessage.value = '';
   }
 };
+
 const startAutoProgression = () => {
   if (!autoProgressEnabled.value) return;
   
@@ -3264,36 +3684,39 @@ const generateJourneyData = async () => {
   try {
     // Calculate days based on rolling type
     let daysToProcess;
+    const endDate = getEndDateForAPI();
     
     if (rollingType.value === 'F') {
       daysToProcess = '1250'; // 5 years of trading days
     } else if (rollingType.value === 'E') {
       daysToProcess = Math.max(totalDays.value, 30).toString();
     } else {
-      // For normal dice rolling, use only the latest dice value
+      // For normal dice rolling, use only the latest dice value × custom multiplier
       const latestDiceValue = diceRolls.value.length > 0 ? 
         diceRolls.value[diceRolls.value.length - 1] : 5; // Default to 5 if no rolls
-      daysToProcess = (latestDiceValue * 5).toString(); // Latest dice × 5
+      daysToProcess = (latestDiceValue * diceMultiplier.value).toString(); // Latest dice × custom multiplier
     }
+
+    
     
     // Prepare API payload
-    const payload = {
-      portfolioId: currentPortfolioId.value,
-      Product: journeySetup.value.selectedProduct,
-      investment: journeySetup.value.amount.toString(),
-      DaysToProceed: daysToProcess,
-      numberOfStocks: journeySetup.value.numberOfStocks.toString(),
-      Startdate: journeySetup.value.startDate,
-      investmentType: journeySetup.value.investmentType,
-      rollingType: rollingType.value
-    };
-
-    console.log('🚀 API Payload (using latest dice value):', {
-      ...payload,
-      latestDiceValue: diceRolls.value[diceRolls.value.length - 1],
-      totalDiceRolls: diceRolls.value.length
-    });
-
+        const payload = {
+          portfolioId: currentPortfolioId.value,
+          Product: journeySetup.value.selectedProduct,
+          investment: journeySetup.value.amount.toString(),
+          DaysToProceed: daysToProcess,
+          numberOfStocks: journeySetup.value.numberOfStocks.toString(),
+          Startdate: journeySetup.value.startDate,
+          Enddate: endDate, // Add end date to payload
+          investmentType: journeySetup.value.investmentType,
+          rollingType: rollingType.value
+        };
+      console.log('✅ Journey Data Successfully Loaded:', {
+        totalDays: journeyDays.value.length,
+        rollingType: rollingType.value,
+        portfolioId: currentPortfolioId.value,
+        endDate: endDate  // Add this line
+      });
     // Fetch data from API
     const apiData = await fetchSmartVestData(payload);
     
@@ -3416,6 +3839,21 @@ const getCurrentQuotes = () => {
     return endJourneyQuotes.value;
   } else {
     return fiveYearQuotes.value;
+  }
+};
+
+const getPhaseSubtitle = () => {
+  switch(currentEducationalPhase.value) {
+    case 'startup':
+      return 'Learning the fundamentals of smart investing';
+    case 'fiveYear':
+      return 'Simulating 5 years of systematic investing';
+    case 'endJourney':
+      return 'Completing your investment journey';
+    case 'closing':
+      return 'Thank you for learning with Vivekam';
+    default:
+      return 'Please wait while we process your request';
   }
 };
 
@@ -3689,6 +4127,16 @@ const startNewJourney = () => {
   // Add loading state for smooth transition
   isFullScreenLoading.value = true;
   loadingMessage.value = 'Starting New Journey...';
+  hasFiveYearTermCompleted.value = false;
+  hasFiveYearTermBeenUsed.value = false;
+
+    // Reset Five Year Term flags
+  hasFiveYearTermCompleted.value = false;
+  hasFiveYearTermBeenUsed.value = false;
+
+  // Reset multiplier options
+  diceMultiplier.value = 5;
+  showMultiplierOption.value = false;
   
   console.log('🔄 Starting new investment journey...');
   
@@ -3755,13 +4203,24 @@ const cancelExit = () => {
 };
 
 const confirmExit = () => {
-  stopAutoProgression();
   showExitDialog.value = false;
   
-  console.log('🏠 Navigating to home page...');
+  // Show closing educational messages
+  isFullScreenLoading.value = true;
+  loadingMessage.value = 'Thank you for using Vivekam...';
   
-  // Navigate to home page (root of current domain)
-  window.location.href = window.location.origin;
+  startEducationalMessages('closing');
+  
+  stopAutoProgression();
+  
+  console.log('🏠 Showing closing messages before exit...');
+  
+  // Show closing messages for a few seconds before redirecting
+  setTimeout(() => {
+    stopEducationalMessages();
+    console.log('🏠 Navigating to home page...');
+    window.location.href = window.location.origin;
+  }, 4000); // Show closing messages for 4 seconds
 };
 
 watch(currentDayIndex, () => {
@@ -10093,6 +10552,22 @@ background: rgb(1 7 22 / 20%);
   height: 58px !important;
 }
 
+.animation-indicator {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  animation: indicatorPulse 1s infinite ease-in-out;
+}
+
+@keyframes indicatorPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .timeline-node.event-node .node-core {
   background: linear-gradient(145deg, rgba(59, 130, 246, 0.8), rgba(147, 197, 253, 0.6)) !important;
   border: 2px solid rgba(59, 130, 246, 0.4) !important;
@@ -10463,5 +10938,243 @@ background: rgb(1 7 22 / 20%);
 .animated-stock-card.exiting .stock-card-trail::after {
   background: #ef4444;
   animation-duration: 1.5s; /* Longer trail for slower animation */
+}
+
+/* Educational Message Styles */
+.educational-message-section {
+  background: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.98) 0%, 
+    rgba(248, 250, 252, 0.95) 100%
+  );
+  border-radius: 1.2rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.educational-message-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+  border-radius: 1.2rem 1.2rem 0 0;
+}
+
+.educational-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
+  animation: educationalIconFloat 3s infinite ease-in-out;
+}
+
+@keyframes educationalIconFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.05); }
+}
+
+.educational-title {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #1e40af;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
+  line-height: 1.2;
+}
+
+.educational-content {
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.educational-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-style: italic;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.educational-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.educational-progress-bar {
+  width: 100%;
+  max-width: 300px;
+  height: 8px;
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.educational-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  position: relative;
+}
+
+.educational-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6));
+  animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShimmer {
+  0% { transform: translateX(-20px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(20px); opacity: 0; }
+}
+
+.educational-progress-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced loading container for educational content */
+.loading-content-container {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 600px; /* Increased width for educational content */
+  width: 95%;
+  text-align: center;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: loadingSlideIn 0.5s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Mobile responsiveness for educational content */
+@media (max-width: 600px) {
+  .educational-message-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .educational-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .educational-title {
+    font-size: 1.2rem;
+  }
+  
+  .educational-content {
+    font-size: 0.9rem;
+  }
+  
+  .educational-subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .loading-content-container {
+    padding: 1.5rem 1rem;
+    max-width: 95%;
+  }
+}
+
+/* Animation for educational message transitions */
+.educational-message-section {
+  animation: educationalSlideIn 0.6s ease-out;
+}
+
+@keyframes educationalSlideIn {
+  0% { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.95);
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+  }
+}
+
+.multiplier-ultra-compact {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  margin-top: 0.3rem;
+}
+
+.multiplier-label-mini {
+  font-size: 0.8rem;
+}
+
+.multiplier-dropdown {
+  padding: 0.2rem 0.3rem;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.3rem;
+  background: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1e40af;
+  cursor: pointer;
+}
+
+.multiplier-info-mini {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* JOURNEY COMPONENT FIXES */
+.journey-view {
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .journey-view {
+    padding: 0.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .journey-view {
+    padding: 0.2rem;
+  }
 }
 </style>

@@ -28,7 +28,7 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Inter", Sans-serif;;
   background-color: var(--primary);
   color: var(--light);
   min-height: 100vh;
