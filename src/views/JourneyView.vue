@@ -198,6 +198,85 @@
     <div class="grid-pattern"></div>
   </div>
 
+  <!-- NOBUY Information Dialog -->
+<div v-if="showNoBuyDialog" class="nobuy-dialog-overlay">
+  <div class="nobuy-dialog-background"></div>
+  <div class="nobuy-dialog-container">
+    
+    <!-- Logo Section -->
+    <div class="nobuy-logo-section">
+      <div class="nobuy-logo-circle">
+        <img 
+          src="../assets/logo.jpeg" 
+          alt="Vivekam Logo" 
+          class="nobuy-logo"
+          @error="$event.target.style.display='none'"
+        />
+        <div class="nobuy-logo-ring"></div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="nobuy-dialog-header">
+      <div class="nobuy-icon">🚫</div>
+      <h2 class="nobuy-title">No Buy Period</h2>
+      <p class="nobuy-subtitle">Investment Advisory Notice</p>
+    </div>
+
+    <!-- Message Content -->
+    <div class="nobuy-message-container">
+      <div class="nobuy-message-content">
+        <p class="nobuy-reason-text">{{ noBuyReason }}</p>
+        <div class="nobuy-info-note">
+          <span class="info-badge">ℹ️</span>
+          <span class="info-text">This is based on our systematic investment rules</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="nobuy-actions">
+      <button class="nobuy-ok-btn" @click="handleNoBuyOkClick">
+        <span class="btn-icon">✓</span>
+        <span class="btn-text">Understood</span>
+      </button>
+    </div>
+
+    <!-- Auto-close Indicator -->
+    <div class="nobuy-footer">
+      <p class="auto-close-text">Auto-closing in 3 seconds...</p>
+      <div class="auto-close-progress">
+        <div class="auto-close-bar"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Holdings Tooltip -->
+<div 
+  v-if="holdingsTooltip.visible" 
+  class="holdings-tooltip"
+  :style="{ left: holdingsTooltip.x + 'px', top: holdingsTooltip.y + 'px' }"
+>
+  <div class="holdings-tooltip-header">
+    <div class="tooltip-type-badge" :class="holdingsTooltip.event?.type?.toLowerCase()">
+      <span class="badge-icon">
+        {{ holdingsTooltip.event?.type === 'BUY' ? '📈' : holdingsTooltip.event?.type === 'SELL' ? '📉' : '💰' }}
+      </span>
+      <span class="badge-text">{{ holdingsTooltip.event?.type || 'EVENT' }}</span>
+    </div>
+    <div class="tooltip-stock-name">{{ holdingsTooltip.event?.stock || 'N/A' }}</div>
+  </div>
+  
+  <div class="holdings-tooltip-content">
+    <div class="reason-label">Reason:</div>
+    <div class="reason-content">{{ holdingsTooltip.reason }}</div>
+  </div>
+  
+  <div class="tooltip-arrow"></div>
+</div>
+
   <!-- Main Journey Container -->
   <div class="journey-container">
 
@@ -372,31 +451,32 @@
               </div>
             </div>
             <div class="panel-content">
-              <div v-if="eventsDisplayDay?.events?.length > 0" class="current-events-list">
-                <div 
-                  v-for="(event, index) in paginatedCurrentEvents" 
-                  :key="index"
-                  :class="['event-line-enhanced', event.type.toLowerCase()]"
-                >
-                  <!-- Event Info Row -->
-                  <div class="event-info-row">
-                    <span class="event-icon-compact">
-                      {{ event.type === 'BUY' ? '📈' : event.type === 'SELL' ? '📉' : '💰' }}
-                    </span>
-                    <span class="event-type-compact">{{ event.type }}</span>
-                    <span class="event-stock-compact">{{ event.stock || 'N/A' }}</span>
-                    <span class="event-quantity-compact">{{ event.quantity || (event.amount ? '₹' + formatAmount(parseFloat(event.amount)) : 'N/A') }}</span>
+                  <div v-if="eventsDisplayDay?.events?.length > 0" class="current-events-list">
+                    <div 
+                      v-for="(event, index) in paginatedCurrentEvents" 
+                      :key="index"
+                      :class="['event-line-enhanced', event.type.toLowerCase()]"
+                      @mouseenter="showHoldingsTooltip($event, event)"
+                      @mouseleave="hideHoldingsTooltip"
+                    >
+                      <!-- Event Info Row -->
+                      <div class="event-info-row">
+                        <span class="event-icon-compact">
+                          {{ event.type === 'BUY' ? '📈' : event.type === 'SELL' ? '📉' : '💰' }}
+                        </span>
+                        <span class="event-type-compact">{{ event.type }}</span>
+                        <span class="event-stock-compact">{{ event.stock || 'N/A' }}</span>
+                        <span class="event-quantity-compact">{{ event.quantity || (event.amount ? '₹' + formatAmount(parseFloat(event.amount)) : 'N/A') }}</span>
+                      </div>
+                      
+                      <!-- Price Data Row -->
+                      <div class="price-data-row">
+                        <span class="price-item-compact high">H:₹{{ event.dayHigh || 'N/A' }}</span>
+                        <span class="price-item-compact low">L:₹{{ event.dayLow || 'N/A' }}</span>
+                        <span class="price-item-compact buy">T:₹{{ event.price || 'N/A' }}</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <!-- Price Data Row -->
-                  <!-- Price Data Row -->
-                  <div class="price-data-row">
-                    <span class="price-item-compact high">H:₹{{ event.dayHigh || 'N/A' }}</span>
-                    <span class="price-item-compact low">L:₹{{ event.dayLow || 'N/A' }}</span>
-                    <span class="price-item-compact buy">T:₹{{ event.price || 'N/A' }}</span>
-                  </div>
-                </div>
-              </div>
 
               <div v-else class="no-data-message">
                 <div class="no-data-icon">📭</div>
@@ -677,39 +757,38 @@
               @mouseleave="hideChartTooltip"
             ></canvas>
             
-            <!-- Chart Tooltip -->
-<!-- Chart Tooltip -->
-<div 
-  v-if="chartTooltip.visible" 
-  class="chart-tooltip"
-  :style="{ left: chartTooltip.x + 'px', top: chartTooltip.y + 'px' }"
->
-  <div class="tooltip-header-chart">
-    <div class="tooltip-date-chart">{{ formatDateForTooltip(chartTooltip.data?.date) }}</div>
-    <div class="tooltip-day-chart">Day {{ chartTooltip.data?.day }}</div>
-  </div>
-  <div class="tooltip-content-chart">
-    <div class="tooltip-row">
-      <div class="tooltip-label">Portfolio Return</div>
-      <div class="tooltip-value">{{ chartTooltip.data?.portfolioNav.toFixed(2) }}</div>
-    </div>
-    <div class="tooltip-row">
-      <div class="tooltip-label">Index Return</div>
-      <div class="tooltip-value">{{ chartTooltip.data?.indexNav.toFixed(2) }}</div>
-    </div>
-    <div class="tooltip-row">
-      <div class="tooltip-label">Portfolio Value</div>
-      <div class="tooltip-value">₹{{ formatAmount(chartTooltip.data?.PortfolioValue || 0) }}</div>
-    </div>
-    <div class="tooltip-row">
-      <div class="tooltip-label">Index Value</div>
-      <div class="tooltip-value">{{ formatAmount(chartTooltip.data?.smartVestData?.IndexValue || chartTooltip.data?.IndexPrice || 0) }}</div>
-    </div>
-  </div>
-</div>
-</div>
-</div>
-</div>
+      <!-- Chart Tooltip -->
+      <div 
+        v-if="chartTooltip.visible" 
+        class="chart-tooltip"
+        :style="{ left: chartTooltip.x + 'px', top: chartTooltip.y + 'px' }"
+      >
+        <div class="tooltip-header-chart">
+          <div class="tooltip-date-chart">{{ formatDateForTooltip(chartTooltip.data?.date) }}</div>
+          <div class="tooltip-day-chart">Day {{ chartTooltip.data?.day }}</div>
+        </div>
+        <div class="tooltip-content-chart">
+          <div class="tooltip-row">
+            <div class="tooltip-label">Portfolio Return</div>
+            <div class="tooltip-value">{{ chartTooltip.data?.portfolioNav.toFixed(2) }}</div>
+          </div>
+          <div class="tooltip-row">
+            <div class="tooltip-label">Index Return</div>
+            <div class="tooltip-value">{{ chartTooltip.data?.indexNav.toFixed(2) }}</div>
+          </div>
+          <div class="tooltip-row">
+            <div class="tooltip-label">Portfolio Value</div>
+            <div class="tooltip-value">₹{{ formatAmount(chartTooltip.data?.PortfolioValue || 0) }}</div>
+          </div>
+          <div class="tooltip-row">
+            <div class="tooltip-label">Index Value</div>
+            <div class="tooltip-value">{{ formatAmount(chartTooltip.data?.smartVestData?.IndexValue || chartTooltip.data?.IndexPrice || 0) }}</div>
+          </div>
+        </div>
+      </div>
+      </div>
+      </div>
+      </div>
 
       
       <!-- Right Side: Enhanced Configuration with Dice Rolling (moved from left) -->
@@ -1304,17 +1383,17 @@
           </div>
           <div class="stat-compact">
             <span class="stat-label-compact">Index Value</span>
-            <span class="stat-value-compact">{{ dayTooltip.day?.smartVestData?.IndexValue || dayTooltip.day?.portfolio?.indexValue?.toFixed(4) || 'N/A' }}</span>
+            <span class="stat-value-compact">{{ dayTooltip.day?.smartVestData?.IndexValue || dayTooltip.day?.portfolio?.indexValue?.toFixed(2) || 'N/A' }}</span>
           </div>
           <div class="stat-compact">
             <span class="stat-label-compact">Portfolio NAV</span>
             <span :class="['stat-value-compact', (dayTooltip.day?.smartVestData?.PortfolioNav || 1) >= 1 ? 'positive' : 'negative']">
-              {{ (dayTooltip.day?.smartVestData?.PortfolioNav).toFixed(4) }}
+              {{ (dayTooltip.day?.smartVestData?.PortfolioNav).toFixed(2) }}
             </span>
           </div>
           <div class="stat-compact">
             <span class="stat-label-compact">Index NAV</span>
-            <span class="stat-value-compact neutral">{{ (dayTooltip.day?.smartVestData?.IndexNav).toFixed(4) }}</span>
+            <span class="stat-value-compact neutral">{{ (dayTooltip.day?.smartVestData?.IndexNav).toFixed(2) }}</span>
           </div>
           <div class="stat-compact">
             <span class="stat-label-compact">Change</span>
@@ -1334,7 +1413,7 @@
         <div class="section-title-compact">💱 Day Events ({{ dayTooltip.day.events.length }})</div>
            <div v-if="dayTooltip.day?.events?.length > 0" class="trades-list-compact">
             <div 
-            v-for="(event, index) in dayTooltip.day.events.slice(0, 4)" 
+            v-for="(event, index) in dayTooltip.day.events.slice(0, 3)" 
             :key="index"
             :class="['trade-row-compact', event.type.toLowerCase()]"
             >
@@ -1345,9 +1424,10 @@
             <span class="trade-qty-compact">
               {{ event.quantity || (event.amount ? '₹' + formatAmount(parseFloat(event.amount)) : '') }}
             </span>
+            <div v-if="event.reason" class="event-reason-line">{{ event.reason }}</div>
           </div>
-          <div v-if="dayTooltip.day.events.length > 4" class="more-events-indicator">
-            +{{ dayTooltip.day.events.length - 4 }} more events
+          <div v-if="dayTooltip.day.events.length > 3" class="more-events-indicator">
+            +{{ dayTooltip.day.events.length - 3}} more events
           </div>
         </div>
               </div>
@@ -1379,6 +1459,9 @@ const animationStartTime = ref(null);
 const rawApiData = ref(null);
 const chartApiData = ref([]);
 const cumulativeDays = ref(0); // Track total days from all dice rolls
+const showNoBuyDialog = ref(false)
+const noBuyReason = ref('')
+const noBuyAutoCloseTimeout = ref(null)
 
 
 const animationConfig = {
@@ -1396,7 +1479,6 @@ const canCloseDialog = ref(false)
 const quoteInterval = ref(null)
 const apiCompleted = ref(false)
 const showExitDialog = ref(false);
-// Add these new reactive variables
 const diceMultiplier = ref(5); // Default multiplier
 const showMultiplierOption = ref(false); // Show option after 3 rolls
 const availableMultipliers = ref([5, 10, 15, 20, 25, 30, 35, 40, 45, 50]);
@@ -1440,7 +1522,6 @@ const endJourneyQuotes = ref([
   }
 ]);
 
-// Add this after your existing reactive variables
 const educationalMessages = {
   startup: [
     {
@@ -1741,7 +1822,6 @@ const timelineNavInfo = computed(() => {
   };
 });
 
-// Add this computed property after your existing computed properties
 const chartAxisConfig = computed(() => {
   const currentJourneyLength = journeyDays.value.length;
   
@@ -2090,7 +2170,6 @@ const handleInstantCompletion = () => {
   console.log('⚡ Journey completed instantly to final day:', journeyDays.value.length);
 };
 
-// Add this new computed property for better subtitle logic
 const isManualSelection = computed(() => {
   return selectedDayIndex.value !== null && !isInitialEventsLocked.value;
 });
@@ -2144,6 +2223,52 @@ const isFullScreenLoading = ref(false);
 const loadingMessage = ref('');
 const currentJourneyEndDate = ref(''); // Track the end date of current journey
 const isFirstRoll = ref(true); // Track if this is the first dice roll
+const holdingsTooltip = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  reason: '',
+  event: null
+})
+
+// Holdings Tooltip Methods
+const showHoldingsTooltip = (event, eventData) => {
+  if (!eventData.reason) return; // Don't show tooltip if no reason
+  
+  const rect = event.currentTarget.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  const tooltipWidth = 250;
+  const tooltipHeight = 80;
+  
+  let x = rect.left + rect.width / 2 - tooltipWidth / 2;
+  let y = rect.top - tooltipHeight - 10;
+  
+  // Keep tooltip in bounds horizontally
+  if (x < 10) {
+    x = 10;
+  } else if (x + tooltipWidth > viewportWidth - 10) {
+    x = viewportWidth - tooltipWidth - 10;
+  }
+  
+  // Keep tooltip in bounds vertically
+  if (y < 10) {
+    y = rect.bottom + 10;
+  }
+  
+  holdingsTooltip.value = {
+    visible: true,
+    x: x,
+    y: y,
+    reason: eventData.reason,
+    event: eventData
+  };
+}
+
+const hideHoldingsTooltip = () => {
+  holdingsTooltip.value.visible = false;
+}
 
 
 const fetchSmartVestData = async (payload) => {
@@ -2209,20 +2334,20 @@ const mapApiDataToJourney = (apiData) => {
       allocation: ((holding.Quantity * holding.CurrentPrice) / dayData.PortfolioValue) * 100
     }));
 
-    // Enhanced transactions mapping
-    const events = (dayData.Transactions || []).map(transaction => ({
-      type: transaction.OrderType.toUpperCase(),
-      stock: transaction.Symbol,
-      quantity: transaction.Quantity,
-      price: transaction.Price.toFixed(2),
-      amount: (transaction.Quantity * transaction.Price).toFixed(2),
-      dayHigh: transaction.High,
-      dayLow: transaction.Low,
-      priceRange: transaction.High - transaction.Low,
-      tradePosition: ((transaction.Price - transaction.Low) / (transaction.High - transaction.Low)) * 100,
-      currentPrice: holdings?.find(h => h.symbol === transaction.Symbol)?.currentPrice || transaction.Price
-    }));
-
+// Enhanced transactions mapping
+const events = (dayData.Transactions || []).map(transaction => ({
+  type: transaction.OrderType.toUpperCase(),
+  stock: transaction.Symbol,
+  quantity: transaction.Quantity,
+  price: transaction.Price.toFixed(2),
+  amount: (transaction.Quantity * transaction.Price).toFixed(2),
+  dayHigh: transaction.High,
+  dayLow: transaction.Low,
+  reason: transaction.Reason,
+  priceRange: transaction.High - transaction.Low,
+  tradePosition: ((transaction.Price - transaction.Low) / (transaction.High - transaction.Low)) * 100,
+  currentPrice: holdings?.find(h => h.symbol === transaction.Symbol)?.currentPrice || transaction.Price
+}));
     // Calculate performance metrics
     const portfolioValue = dayData.PortfolioValue;
     const indexValue = graphData ? graphData.IndexValue : dayData.IndexPrice;
@@ -2598,7 +2723,6 @@ const updateAnimationStyle = (animationId, type, panelPositions) => {
   };
 };
 
-// Add this new function
 const triggerStockAnimationsWithCallback = async (events, onComplete) => {
   if (isAnimating.value) return;
   
@@ -3276,7 +3400,7 @@ const showDayTooltip = (event, day) => {
   const maxHeight = Math.min(450, viewportHeight * 0.75); // Maximum height
   
   // Use consistent height - not dynamic based on content
-  const tooltipHeight = Math.max(minHeight, Math.min(maxHeight, 380));
+  const tooltipHeight = Math.max(minHeight, Math.min(maxHeight, 400));
   
   let x = rect.left + rect.width / 2 - tooltipWidth / 2;
   let y = rect.top - tooltipHeight - 15;
@@ -3865,7 +3989,12 @@ const generateJourneyData = async () => {
 
   try {
     const apiData = await fetchSmartVestData(payload);
-    
+
+    if (apiData.isnobuy && apiData.nobuyreason) {
+      console.log('🚫 NOBUY condition detected:', apiData.nobuyreason);
+      showNoBuyPopup(apiData.nobuyreason);
+      // Still continue with the journey data processing
+    }
     // Store raw API response
     rawApiData.value = apiData;
     
@@ -3994,13 +4123,39 @@ const handleChartMouseMove = (event) => {
   }
 };
 
-
-
-
-
 const hideChartTooltip = () => {
   chartTooltip.value.visible = false;
 };
+
+// NOBUY Dialog Methods
+const showNoBuyPopup = (reason) => {
+  noBuyReason.value = reason || 'No buy conditions detected'
+  showNoBuyDialog.value = true
+  
+  // Auto-close after 3 seconds
+  noBuyAutoCloseTimeout.value = setTimeout(() => {
+    closeNoBuyDialog()
+  }, 3000)
+  
+  console.log('🚫 Showing NOBUY popup:', reason)
+}
+
+const closeNoBuyDialog = () => {
+  showNoBuyDialog.value = false
+  noBuyReason.value = ''
+  
+  // Clear auto-close timeout if it exists
+  if (noBuyAutoCloseTimeout.value) {
+    clearTimeout(noBuyAutoCloseTimeout.value)
+    noBuyAutoCloseTimeout.value = null
+  }
+  
+  console.log('✅ NOBUY dialog closed')
+}
+
+const handleNoBuyOkClick = () => {
+  closeNoBuyDialog()
+}
 
 
 // Add this computed property or method
@@ -4590,6 +4745,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopAutoProgression();
+  
+  // **NEW: Cleanup NOBUY timeout**
+  if (noBuyAutoCloseTimeout.value) {
+    clearTimeout(noBuyAutoCloseTimeout.value);
+  }
 });
 
 // Add this in your setup or mounted section
@@ -4761,7 +4921,7 @@ html {
   flex: 0 0 325px;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.5rem;
 }
 
 @media (max-width: 1200px) {
@@ -4901,7 +5061,7 @@ html {
 .dice-control-area {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .dice-display {
@@ -4913,7 +5073,7 @@ html {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 0.8rem;
   border: 1px solid rgba(255, 193, 7, 0.3);
-  height: 16vh;
+  height: 12vh;
 }
 
 .roll-dice-btn {
@@ -7553,7 +7713,7 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
 background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, rgb(87 153 219 / 92%) 100%);
   border: 2px solid rgba(147, 197, 253, 0.3);
   border-radius: 1.2rem;
-  padding: 1rem;
+  padding: 0.8rem;
   box-shadow: 
     0 0.8rem 2rem rgba(25, 118, 210, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -8073,8 +8233,8 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   animation: tooltipFadeIn 0.25s ease-out;
   font-size: 0.75rem;
   /* Ensure consistent sizing */
-  min-height: 280px;
-  max-height: 450px;
+  min-height: 320px;
+  max-height: 620px;
   display: flex;
   flex-direction: column;
 }
@@ -8208,7 +8368,7 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   flex-direction: column;
   gap: 0.3rem;
   padding-right: 0.3rem;
-  min-height: 120px; /* Minimum height for events area */
+  min-height: 125px; /* Minimum height for events area */
   /* Better scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
@@ -8236,13 +8396,13 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   .day-tooltip {
     /* On mobile, use more of the screen */
     max-width: 95vw !important;
-    max-height: 85vh !important;
+    max-height: 70vh !important;
     margin: 10px;
     font-size: 0.7rem;
   }
   
   .trades-list-compact {
-    max-height: 150px;
+    max-height: 160px;
   }
   
   .tooltip-section-compact {
@@ -9340,7 +9500,7 @@ background: linear-gradient(145deg, #6dace9 0%, rgba(248, 250, 252, 0.95) 50%, r
   border: 1px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(20px);
   margin-bottom: 0;
-  margin-top:3rem;
+  margin-top:2.4rem;
   position: relative;
   min-height: 120px; /* Reduced from default */
 }
@@ -10283,6 +10443,311 @@ background: rgb(1 7 22 / 20%);
   }
 }
 
+/* NOBUY Dialog Styles */
+.nobuy-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: dialogFadeIn 0.3s ease-out;
+}
+
+.nobuy-dialog-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.nobuy-dialog-container {
+  position: relative;
+  background: linear-gradient(145deg, #ffffff 0%, #fef9c3 20%, #fef3c7 50%, #fde68a 80%, #f59e0b 100%);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 
+    0 25px 75px rgba(245, 158, 11, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 3px solid rgba(245, 158, 11, 0.3);
+  animation: nobuyDialogSlideIn 0.4s ease-out;
+  text-align: center;
+  overflow: hidden;
+}
+
+@keyframes nobuyDialogSlideIn {
+  0% { 
+    transform: scale(0.8) translateY(30px) rotate(-2deg);
+    opacity: 0;
+  }
+  100% { 
+    transform: scale(1) translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Logo Section */
+.nobuy-logo-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.nobuy-logo-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffffff 0%, #fef9c3 100%);
+  box-shadow: 
+    0 8px 25px rgba(245, 158, 11, 0.3),
+    inset 0 2px 6px rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: nobuyLogoFloat 3s infinite ease-in-out;
+  border: 2px solid rgba(245, 158, 11, 0.4);
+  padding: 8px;
+}
+
+.nobuy-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 0;
+  filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));
+}
+
+.nobuy-logo-ring {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 2px solid rgba(245, 158, 11, 0.6);
+  border-radius: 50%;
+  animation: nobuyLogoRingPulse 2s infinite ease-in-out;
+}
+
+@keyframes nobuyLogoFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.03); }
+}
+
+@keyframes nobuyLogoRingPulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.nobuy-dialog-header {
+  margin-bottom: 1.5rem;
+}
+
+.nobuy-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+  filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.4));
+  animation: nobuyIconPulse 2s infinite ease-in-out;
+}
+
+@keyframes nobuyIconPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}
+
+.nobuy-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #92400e;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(146, 64, 14, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nobuy-subtitle {
+  font-size: 0.9rem;
+  color: #a16207;
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Message Content */
+.nobuy-message-container {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid rgba(245, 158, 11, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.nobuy-reason-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #451a03;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(69, 26, 3, 0.2);
+}
+
+.nobuy-info-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(245, 158, 11, 0.15);
+  border-radius: 0.8rem;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.info-badge {
+  font-size: 1rem;
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5));
+}
+
+.info-text {
+  font-size: 0.8rem;
+  color: #78350f;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* Actions */
+.nobuy-actions {
+  margin-bottom: 1.5rem;
+}
+
+.nobuy-ok-btn {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+  border: none;
+  border-radius: 0.8rem;
+  padding: 0.8rem 2rem;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0.4rem 1rem rgba(5, 150, 105, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  min-width: 150px;
+  justify-content: center;
+}
+
+.nobuy-ok-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0.6rem 1.5rem rgba(5, 150, 105, 0.6);
+  background: linear-gradient(135deg, #047857, #059669);
+}
+
+.nobuy-ok-btn .btn-icon {
+  font-size: 1.1rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.nobuy-ok-btn .btn-text {
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+/* Footer */
+.nobuy-footer {
+  border-top: 2px solid rgba(245, 158, 11, 0.3);
+  padding-top: 1rem;
+}
+
+.auto-close-text {
+  font-size: 0.75rem;
+  color: #78350f;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.auto-close-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.auto-close-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  border-radius: 2px;
+  animation: autoCloseProgress 3s linear;
+  transform-origin: left;
+}
+
+@keyframes autoCloseProgress {
+  0% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .nobuy-dialog-container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .nobuy-title {
+    font-size: 1.4rem;
+  }
+  
+  .nobuy-icon {
+    font-size: 2rem;
+  }
+  
+  .nobuy-logo-circle {
+    width: 60px;
+    height: 60px;
+    padding: 6px;
+  }
+  
+  .nobuy-logo {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .nobuy-reason-text {
+    font-size: 0.9rem;
+  }
+}
+
+/* Disable interactions with background content */
+.journey-view:has(.nobuy-dialog-overlay) > *:not(.nobuy-dialog-overlay) {
+  pointer-events: none;
+  user-select: none;
+}
+
 .quote-icon {
   font-size: 2rem;
   margin-bottom: 1rem;
@@ -10538,7 +11003,7 @@ background: rgb(1 7 22 / 20%);
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 120px;
+  min-height: 125px;
   color: rgba(255, 255, 255, 0.6);
   font-style: italic;
   text-align: center;
@@ -11659,6 +12124,186 @@ background: rgb(1 7 22 / 20%);
   .educational-logo {
     width: 56px;
     height: 56px;
+  }
+}
+
+/* Reason line styling */
+.event-reason-line {
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+/* Minimal trade row height adjustment */
+.trade-row-compact {
+  min-height: 32px; /* Increased from 24px to accommodate reason line */
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 600px) {
+  .day-tooltip {
+    max-width: 280px; /* Slightly wider on mobile */
+  }
+  
+  .event-reason-line {
+    font-size: 0.45rem;
+  }
+}
+
+/* Holdings Tooltip Styles */
+.holdings-tooltip {
+  position: fixed;
+  z-index: 1001;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.96));
+  color: white;
+  border-radius: 0.8rem;
+  padding: 0.8rem;
+  min-width: 250px;
+  max-width: 300px;
+  box-shadow: 
+    0 12px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  animation: holdingsTooltipFadeIn 0.2s ease-out;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+@keyframes holdingsTooltipFadeIn {
+  0% { opacity: 0; transform: scale(0.95) translateY(5px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.holdings-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.tooltip-type-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.tooltip-type-badge.buy {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+}
+
+.tooltip-type-badge.sell {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.tooltip-type-badge.dividend {
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  color: #fbbf24;
+}
+
+.badge-icon {
+  font-size: 0.7rem;
+}
+
+.badge-text {
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+
+.tooltip-stock-name {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #60a5fa;
+  flex: 1;
+}
+
+.holdings-tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.reason-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.reason-content {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.96));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-top: none;
+  border-left: none;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* Enhanced event line hover effect */
+.event-line-enhanced {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-line-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .holdings-tooltip {
+    min-width: 220px;
+    max-width: 90vw;
+    font-size: 0.7rem;
+  }
+  
+  .reason-content {
+    font-size: 0.65rem;
+  }
+  
+  .tooltip-stock-name {
+    font-size: 0.75rem;
   }
 }
 </style>
