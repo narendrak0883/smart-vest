@@ -108,7 +108,6 @@ html, body {
   overflow-x: hidden;
 }
 
-/* IMPROVED FIXED HEADER */
 .app-header {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3b82f6 100%);
   padding: 0.5rem 1rem;
@@ -120,16 +119,11 @@ html, body {
   right: 0;
   z-index: 1000;
   border-bottom: 2px solid #60a5fa;
-  height: auto; /* Flexible height */
-  min-height: 50px; /* Minimum height */
+  height: 60px; /* Fixed height instead of min-height */
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  /* Safe area support for notched devices */
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
-  padding-top: max(0.5rem, env(safe-area-inset-top));
 }
 
 .app-header::before {
@@ -222,26 +216,20 @@ html, body {
   60% { transform: translateY(-2px); }
 }
 
-/* IMPROVED ROUTER CONTAINER */
 .router-container {
   flex: 1;
-  padding-top: 60px; /* Use padding instead of margin */
-  overflow: auto; /* Allow scrolling if content is too tall */
-  min-height: 0; /* Allow shrinking */
-  width: 100%;
+  padding-top: 65px; /* Use actual header height */
+  height: calc(100vh - 80px);
+  overflow: hidden; /* Critical: container should not scroll */
   position: relative;
-  /* Safe area support */
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .route-component {
   height: 100%;
-  min-height: calc(100vh - 60px); /* Ensure minimum height */
-  min-height: calc(100dvh - 60px); /* Dynamic viewport height */
   width: 100%;
-  overflow: auto; /* Allow scrolling within component */
+  overflow: auto; /* Allow internal scrolling */
+  display: flex;
+  flex-direction: column;
 }
 
 .no-component {
@@ -256,55 +244,51 @@ html, body {
   margin: 20px;
 }
 
-/* JOURNEY COMPONENT FIXES */
-.journey-view {
-  height: 100%;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.5rem;
-  box-sizing: border-box;
-}
-
-/* ENHANCED RESPONSIVE DESIGN */
-
-/* Very small phones (portrait) - 320px and below */
-@media (max-width: 320px) {
+/* Mobile - Small phones */
+@media (max-width: 480px) {
   .app-header {
-    padding: 0.2rem 0.3rem;
-    min-height: 35px;
-    padding-left: max(0.3rem, env(safe-area-inset-left));
-    padding-right: max(0.3rem, env(safe-area-inset-right));
-  }
-  
-  .header-content {
-    gap: 0.3rem;
-  }
-  
-  .app-title {
-    font-size: 0.8rem;
-    letter-spacing: 0.3px;
-  }
-  
-  .app-subtitle {
-    font-size: 0.45rem;
-  }
-  
-  .rupee {
-    font-size: 0.7rem;
+    height: 50px;
+    padding: 0.3rem 0.5rem;
   }
   
   .router-container {
-    padding-top: 45px;
+    padding-top: 50px;
+    height: calc(100vh - 50px);
   }
   
-  .route-component {
-    min-height: calc(100vh - 45px);
-    min-height: calc(100dvh - 45px);
+  .app-title {
+    font-size: 1rem;
+    letter-spacing: 1px;
   }
   
-  .journey-view {
-    padding: 0.2rem;
+  .app-subtitle {
+    font-size: 0.5rem;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .app-header {
+    height: 55px;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .router-container {
+    padding-top: 55px;
+    height: calc(100vh - 55px);
+  }
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+  .app-header {
+    height: 60px;
+    padding: 0.5rem 1rem;
+  }
+  
+  .router-container {
+    padding-top: 60px;
+    height: calc(100vh - 60px);
   }
 }
 

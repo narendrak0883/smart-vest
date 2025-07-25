@@ -8,7 +8,22 @@
     <!-- Centered Loading Content -->
       <div class="loading-content-container">
         <!-- Educational Message Display -->
+<!-- Educational Message Display -->
         <div v-if="getCurrentEducationalMessage()" class="educational-message-section">
+          <!-- Logo Container -->
+          <div class="educational-logo-container">
+            <div class="logo-circle">
+              <img 
+                src="../assets/logo.jpeg" 
+                alt="Vivekam Logo" 
+                class="educational-logo"
+                @error="$event.target.style.display='none'"
+              />
+              <div class="logo-ring"></div>
+              <div class="logo-ring-outer"></div>
+            </div>
+          </div>
+          
           <div class="educational-icon">
             {{ getCurrentEducationalMessage().icon }}
           </div>
@@ -670,24 +685,32 @@
   :style="{ left: chartTooltip.x + 'px', top: chartTooltip.y + 'px' }"
 >
   <div class="tooltip-header-chart">
-    <div class="tooltip-date-chart">{{ formatDateShort(chartTooltip.data?.date) }}</div>
+    <div class="tooltip-date-chart">{{ formatDateForTooltip(chartTooltip.data?.date) }}</div>
     <div class="tooltip-day-chart">Day {{ chartTooltip.data?.day }}</div>
   </div>
   <div class="tooltip-content-chart">
     <div class="tooltip-row">
+      <div class="tooltip-label">Portfolio Return</div>
+      <div class="tooltip-value">{{ chartTooltip.data?.portfolioNav.toFixed(2) }}</div>
+    </div>
+    <div class="tooltip-row">
+      <div class="tooltip-label">Index Return</div>
+      <div class="tooltip-value">{{ chartTooltip.data?.indexNav.toFixed(2) }}</div>
+    </div>
+    <div class="tooltip-row">
       <div class="tooltip-label">Portfolio Value</div>
-      <div class="tooltip-value">₹{{ formatAmount(chartTooltip.data?.PortfolioValue || chartTooltip.data?.PortfolioValue || 0) }}</div>
+      <div class="tooltip-value">₹{{ formatAmount(chartTooltip.data?.PortfolioValue || 0) }}</div>
     </div>
     <div class="tooltip-row">
       <div class="tooltip-label">Index Value</div>
-      <div class="tooltip-value">{{ formatAmount(chartTooltip.data?.IndexValue || chartTooltip.data?.IndexPrice || 0) }}</div>
+      <div class="tooltip-value">{{ formatAmount(chartTooltip.data?.smartVestData?.IndexValue || chartTooltip.data?.IndexPrice || 0) }}</div>
     </div>
-    </div>
-    </div>
-    </div>
-    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
 
-      </div>
       
       <!-- Right Side: Enhanced Configuration with Dice Rolling (moved from left) -->
       <div class="left-pane">
@@ -997,8 +1020,8 @@
                     type="number" 
                     v-model="journeySetup.amount" 
                     class="amount-input"
-                    min="10000"
-                    max="10000000"
+                    min="500000"
+                    max="1000000"
                     step="1000"
                     placeholder="Enter amount"
                   />
@@ -1353,6 +1376,10 @@ const isAnimating = ref(false)
 const isPortfolioAnimating = ref(false);
 const preAnimationDayIndex = ref(null);
 const animationStartTime = ref(null);
+const rawApiData = ref(null);
+const chartApiData = ref([]);
+const cumulativeDays = ref(0); // Track total days from all dice rolls
+
 
 const animationConfig = {
   duration: 2000,
@@ -1681,7 +1708,7 @@ const dayTooltip = ref({
 const journeySetup = ref({
   startDate: '',
   selectedProduct: 'BG', // Default to Bio Growth
-  amount: 100000,
+  amount: 500000,
   numberOfStocks: 10,
   rollingType: 'S' // Default to S
 });
@@ -2113,9 +2140,11 @@ const progressInterval = ref(null);
 const currentPortfolioId = ref("0"); // Track portfolio ID for subsequent API calls
 const isJourneyCompleting = ref(false); // NEW: Track when journey is completing
 const hasFiveYearTermCompleted = ref(false);
-// Add full-screen loading state
 const isFullScreenLoading = ref(false);
 const loadingMessage = ref('');
+const currentJourneyEndDate = ref(''); // Track the end date of current journey
+const isFirstRoll = ref(true); // Track if this is the first dice roll
+
 
 const fetchSmartVestData = async (payload) => {
   try {
@@ -2145,60 +2174,69 @@ const fetchSmartVestData = async (payload) => {
   }
 };
 
-// Enhanced API data mapping to utilize more fields
 const mapApiDataToJourney = (apiData) => {
   const { DailyPortfolioDetails, SmartVestGraphData } = apiData;
   
+  console.log('🔄 Mapping API data:', {
+    dailyPortfolioCount: DailyPortfolioDetails.length,
+    smartVestGraphCount: SmartVestGraphData.length
+  });
+  
   return DailyPortfolioDetails.map((dayData, index) => {
-const date = dayData.TransactionDate.split('T')[0];
-    const graphData = SmartVestGraphData[index];
+    const date = dayData.TransactionDate.split('T')[0];
+    const graphData = SmartVestGraphData[index]; // This should match by index
     
-    // Enhanced holdings mapping with individual stock performance
-    const holdings = dayData.Holdings.map(holding => ({
+    // Log the mapping for debugging
+    if (index < 5) {
+      console.log(`Day ${index + 1} mapping:`, {
+        date,
+        portfolioValue: dayData.PortfolioValue,
+        hasGraphData: !!graphData,
+        portfolioNav: graphData?.PortfolioNav,
+        indexNav: graphData?.IndexNav
+      });
+    }
+    
+    // Enhanced holdings mapping
+    const holdings = dayData.Holdings?.map(holding => ({
       symbol: holding.Symbol || 'N/A',
       quantity: holding.Quantity,
       currentPrice: holding.CurrentPrice,
       avgPrice: holding.BuyPrice,
       value: holding.Quantity * holding.CurrentPrice,
-      // NEW: Individual stock performance
       dayGainLoss: (holding.CurrentPrice - holding.BuyPrice) * holding.Quantity,
       dayGainLossPercent: ((holding.CurrentPrice - holding.BuyPrice) / holding.BuyPrice) * 100,
       allocation: ((holding.Quantity * holding.CurrentPrice) / dayData.PortfolioValue) * 100
     }));
 
-    // Enhanced transactions with price range data
+    // Enhanced transactions mapping
     const events = (dayData.Transactions || []).map(transaction => ({
       type: transaction.OrderType.toUpperCase(),
       stock: transaction.Symbol,
       quantity: transaction.Quantity,
       price: transaction.Price.toFixed(2),
       amount: (transaction.Quantity * transaction.Price).toFixed(2),
-      // NEW: Utilize High/Low data for market context
       dayHigh: transaction.High,
       dayLow: transaction.Low,
       priceRange: transaction.High - transaction.Low,
-      // Calculate if trade was near high/low
       tradePosition: ((transaction.Price - transaction.Low) / (transaction.High - transaction.Low)) * 100,
-      // Add current price from holdings
-      currentPrice: holdings.find(h => h.symbol === transaction.Symbol)?.currentPrice || transaction.Price
+      currentPrice: holdings?.find(h => h.symbol === transaction.Symbol)?.currentPrice || transaction.Price
     }));
 
-    // Calculate portfolio metrics
+    // Calculate performance metrics
     const portfolioValue = dayData.PortfolioValue;
     const indexValue = graphData ? graphData.IndexValue : dayData.IndexPrice;
     const portfolioNav = graphData ? graphData.PortfolioNav : 1;
     const indexNav = graphData ? graphData.IndexNav : 1;
-    console.log("indexNAvGraphdata", indexNav);
     
-    // Calculate percentage changes based on NAV
-    const portfolioPercentChange = ((portfolioNav - 1));
-    const indexPercentChange = ((indexNav - 1));
+    const portfolioPercentChange = ((portfolioNav - 1) * 100);
+    const indexPercentChange = ((indexNav - 1) * 100);
 
     return {
       date: date,
       day: index + 1,
       
-      // NEW: Add API fields directly at root level for toolbar access
+      // Direct API fields for toolbar access
       CapitalGains: dayData.CapitalGains,
       DividendReceived: dayData.DividendReceived,
       IndexReturn: dayData.IndexReturn,
@@ -2216,19 +2254,13 @@ const date = dayData.TransactionDate.split('T')[0];
         percentChange: portfolioPercentChange,
         niftyChange: indexPercentChange,
         indexValue: indexValue,
-        holdings: holdings.sort((a, b) => b.value - a.value),
-        
-        // NEW: Additional portfolio insights
+        holdings: holdings?.sort((a, b) => b.value - a.value) || [],
         portfolioId: dayData.PortfolioId,
         totalDividends: dayData.DividendReceived,
         capitalGains: dayData.CapitalGains,
-        
-        // NEW: Trading activity summary
         dayTradingVolume: events.reduce((sum, event) => sum + parseFloat(event.amount), 0),
         buyTransactions: events.filter(e => e.type === 'BUY').length,
         sellTransactions: events.filter(e => e.type === 'SELL').length,
-        
-        // NEW: Market volatility for the day
         marketVolatility: events.length > 0 ? 
           events.reduce((sum, event) => sum + event.priceRange, 0) / events.length : 0
       },
@@ -2238,36 +2270,34 @@ const date = dayData.TransactionDate.split('T')[0];
         dividends: dayData.DividendReceived,
         capitalGains: dayData.CapitalGains,
         sharpeRatio: portfolioPercentChange / Math.max(0.1, Math.sqrt(index + 1)),
-        
-        // NEW: API-provided returns for comparison
         apiPortfolioReturn: dayData.PortfolioReturn,
         apiIndexReturn: dayData.IndexReturn,
-        
-        // NEW: Performance attribution
         stockSelection: portfolioPercentChange - indexPercentChange,
         timing: events.length > 0 ? 
           events.reduce((sum, event) => sum + (100 - event.tradePosition), 0) / events.length : 50
       },
-      smartVestData: graphData,
-      
-      // NEW: Market context data
+      // CRITICAL: Ensure smartVestData is properly mapped
+      smartVestData: graphData || {
+        PortfolioNav: portfolioNav,
+        IndexNav: indexNav,
+        PortfolioValue: portfolioValue,
+        IndexValue: indexValue
+      },
       marketData: {
         indexPrice: dayData.IndexPrice,
         indexReturn: dayData.IndexReturn,
         portfolioReturn: dayData.PortfolioReturn,
-        
-        // NEW: Trading insights
         tradingIntensity: events.length,
         avgTradeSize: events.length > 0 ? 
           events.reduce((sum, event) => sum + parseFloat(event.amount), 0) / events.length : 0,
-        
-        // NEW: Trade efficiency analysis
         tradeEfficiency: events.length > 0 ? 
           events.reduce((sum, event) => sum + event.tradePosition, 0) / events.length : 50
       }
     };
   });
 };
+
+
 
 // Computed properties for tile display logic
 const startDisplayTitle = computed(() => {
@@ -2596,6 +2626,34 @@ const triggerStockAnimationsWithCallback = async (events, onComplete) => {
   }, animationConfig.duration + 800);
 };
 
+const triggerStockAnimationsWithCashCallback = async (events, onComplete) => {
+  if (isAnimating.value) return;
+  
+  isAnimating.value = true;
+  activeAnimations.value = [];
+  
+  console.log('🎬 Starting animations with cash callback for', events.length, 'events');
+  
+  const buyEvents = events.filter(e => e.type === 'BUY');
+  const sellEvents = events.filter(e => e.type === 'SELL');
+  const dividendEvents = events.filter(e => e.type === 'DIVIDEND');
+  
+  // Animate in sequence
+  await animateEventGroup(sellEvents, 'sell', 0);
+  await animateEventGroup(buyEvents, 'buy', 300);
+  await animateEventGroup(dividendEvents, 'dividend', 600);
+  
+  // Call completion callback after all animations finish
+  setTimeout(() => {
+    activeAnimations.value = [];
+    isAnimating.value = false;
+    if (onComplete) {
+      onComplete();
+    }
+  }, animationConfig.duration + 800);
+};
+
+
 const handleDayClick = async (day, event) => {
   console.log('🎯 User clicked on day:', day.day);
   
@@ -2607,60 +2665,44 @@ const handleDayClick = async (day, event) => {
   // Store the current state before animation
   preAnimationDayIndex.value = selectedDayIndex.value !== null ? selectedDayIndex.value : currentDayIndex.value;
   
-  // Don't update portfolio values immediately - keep showing previous state during animation
+  // **NEW: Update portfolio data immediately (except cash in final portfolio)**
+  selectedDayIndex.value = day.day - 1;
+  currentDayIndex.value = day.day - 1;
+  showFinalResults.value = false;
+  isInitialEventsLocked.value = false;
+  
+  // Reset pagination
+  eventsPage.value = 0;
+  startStockPage.value = 0;
+  finalStockPage.value = 0;
+  timelineStartIndex.value = currentTimelineStart;
+  
+  if (autoProgressEnabled.value) {
+    stopAutoProgression();
+    autoProgressEnabled.value = false;
+  }
+  
+  dayTooltip.value.visible = false;
+  dayTooltip.value.isPinned = false;
+  
+  // **NEW: Handle animations with selective cash update**
   if (day.events && day.events.length > 0) {
     isPortfolioAnimating.value = true;
     animationStartTime.value = Date.now();
     
-    // Reset pagination but don't update day indices yet
-    eventsPage.value = 0;
-    startStockPage.value = 0;
-    finalStockPage.value = 0;
-    timelineStartIndex.value = currentTimelineStart;
-    
-    if (autoProgressEnabled.value) {
-      stopAutoProgression();
-      autoProgressEnabled.value = false;
-    }
-    
-    dayTooltip.value.visible = false;
-    dayTooltip.value.isPinned = false;
-    
-    // Start animations and update values after completion
-    await triggerStockAnimationsWithCallback(day.events, () => {
-      // This callback runs after animations complete
-      selectedDayIndex.value = day.day - 1;
-      currentDayIndex.value = day.day - 1;
-      showFinalResults.value = false;
-      isInitialEventsLocked.value = false;
+    // Start animations with callback for cash update only
+    await triggerStockAnimationsWithCashCallback(day.events, () => {
+      // This callback runs after animations complete - only updates cash
       isPortfolioAnimating.value = false;
       preAnimationDayIndex.value = null;
       animationStartTime.value = null;
       
-      console.log('✅ Portfolio values updated after animation completion');
+      console.log('✅ Cash component updated after animation completion');
     });
-  } else {
-    // No animations, update immediately
-    selectedDayIndex.value = day.day - 1;
-    currentDayIndex.value = day.day - 1;
-    showFinalResults.value = false;
-    isInitialEventsLocked.value = false;
-    
-    // Reset pagination
-    eventsPage.value = 0;
-    startStockPage.value = 0;
-    finalStockPage.value = 0;
-    timelineStartIndex.value = currentTimelineStart;
-    
-    if (autoProgressEnabled.value) {
-      stopAutoProgression();
-      autoProgressEnabled.value = false;
-    }
-    
-    dayTooltip.value.visible = false;
-    dayTooltip.value.isPinned = false;
   }
 };
+
+
 const closeDayTooltip = () => {
   console.log('❌ Closing day tooltip');
   dayTooltip.value.visible = false;
@@ -2692,14 +2734,8 @@ const finalDisplayDate = computed(() => {
   return currentDay.value?.date || new Date().toISOString().split('T')[0];
 });
 
-// Final portfolio cash and components
 const finalDisplayValue = computed(() => {
-  // During animation, show the pre-animation state
-  if (isPortfolioAnimating.value && preAnimationDayIndex.value !== null) {
-    const preAnimationDay = journeyDays.value[preAnimationDayIndex.value];
-    return preAnimationDay?.portfolio?.totalValue || preAnimationDay?.smartVestData?.PortfolioValue || 0;
-  }
-  
+  // **REMOVED: Animation delay for value - show immediately**
   // PRIORITY 1: Manual selection overrides everything
   if (selectedDayIndex.value !== null) {
     const selectedDay = journeyDays.value[selectedDayIndex.value];
@@ -2714,8 +2750,9 @@ const finalDisplayValue = computed(() => {
   return currentDay.value?.portfolio?.totalValue || currentDay.value?.smartVestData?.PortfolioValue || 0;
 });
 
+
 const finalDisplayCash = computed(() => {
-  // During animation, show the pre-animation state
+  // **NEW: During animation, only show pre-animation cash for final portfolio**
   if (isPortfolioAnimating.value && preAnimationDayIndex.value !== null) {
     const preAnimationDay = journeyDays.value[preAnimationDayIndex.value];
     return preAnimationDay?.portfolio?.cash || preAnimationDay?.Cash || 0;
@@ -2735,13 +2772,9 @@ const finalDisplayCash = computed(() => {
   return currentDay.value?.portfolio?.cash || currentDay.value?.Cash || 0;
 });
 
+
 const finalDisplayStocks = computed(() => {
-  // During animation, show the pre-animation state
-  if (isPortfolioAnimating.value && preAnimationDayIndex.value !== null) {
-    const preAnimationDay = journeyDays.value[preAnimationDayIndex.value];
-    return preAnimationDay?.portfolio?.holdings || [];
-  }
-  
+  // **REMOVED: Animation delay for stocks - show immediately**
   // PRIORITY 1: Manual selection overrides everything
   if (selectedDayIndex.value !== null) {
     const selectedDay = journeyDays.value[selectedDayIndex.value];
@@ -2755,6 +2788,7 @@ const finalDisplayStocks = computed(() => {
   // PRIORITY 3: Current day
   return currentDay.value?.portfolio?.holdings || [];
 });
+
 
 const finalDisplayPerformance = computed(() => {
   // PRIORITY 1: Manual selection overrides everything
@@ -2784,14 +2818,6 @@ const isSetupComplete = computed(() => {
   }
   
   return complete;
-});
-
-const totalDays = computed(() => {
-  if (diceRolls.value.length === 0) return 5; // Base 5 days if no rolls
-  
-  // Use only the latest dice roll value × custom multiplier
-  const latestRoll = diceRolls.value[diceRolls.value.length - 1];
-  return latestRoll * diceMultiplier.value;
 });
 
 const selectedProductName = computed(() => {
@@ -3153,6 +3179,12 @@ const formatDayShort = (date) => {
   });
 };
 
+// In your component, add this method
+const isCashUpdating = computed(() => {
+  return isPortfolioAnimating.value && selectedDayIndex.value !== null;
+});
+
+
 const getFinalDate = () => {
   if (!journeySetup.value.startDate) return new Date().toISOString().split('T')[0];
   const startDate = new Date(journeySetup.value.startDate);
@@ -3421,7 +3453,7 @@ const waitForQuoteCycle = (phase) => {
 };
 
 const rollDice = async () => {
-  if (isRolling.value || isFullScreenLoading.value) return;
+  if (!isSetupComplete.value || isRolling.value || isFullScreenLoading.value) return;
   
   // Show full-screen loading with educational messages
   isFullScreenLoading.value = true;
@@ -3432,32 +3464,31 @@ const rollDice = async () => {
 
   isRolling.value = true;
   
-  // Set all dice to rolling state immediately
-  activeDice.value.forEach(dice => {
+  // Animate dice rolling
+  activeDice.value.forEach((dice, index) => {
     dice.isRolling = true;
+    setTimeout(() => {
+      dice.isRolling = false;
+    }, 1000);
   });
   
-  // Show random values quickly while rolling
-  const rollInterval = setInterval(() => {
-    activeDice.value.forEach(dice => {
-      dice.value = Math.floor(Math.random() * 6) + 1;
-    });
-  }, 50);
-  
-  // First, finish the dice rolling animation
   setTimeout(async () => {
-    clearInterval(rollInterval);
+    // Calculate dice results
+    const dice1 = Math.floor(Math.random() * 6) + 1;
+    const dice2 = Math.floor(Math.random() * 6) + 1;
+    const total = dice1 + dice2;
     
-    const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
-    const total = finalValues.reduce((sum, val) => sum + val, 0);
-    
-    activeDice.value.forEach((dice, index) => {
-      dice.value = finalValues[index];
-      dice.isRolling = false;
-    });
+    activeDice.value[0].value = dice1;
+    activeDice.value[1].value = dice2;
     
     diceRolls.value.push(total);
-
+    diceRollCount.value = diceRolls.value.length;
+    
+    // **NEW: Initialize tracking for first roll**
+    const firstRollDays = total * diceMultiplier.value;
+    cumulativeDays.value = firstRollDays;
+    isFirstRoll.value = true; // This is still the first roll
+    
     isRolling.value = false;
     
     console.log('🎲 Dice rolling completed, now showing complete educational cycle');
@@ -3470,8 +3501,8 @@ const rollDice = async () => {
       console.log('🎓 First dice roll - showing complete educational cycle');
       
       try {
-        // Wait for complete quote cycle before proceeding
-        await waitForQuoteCycle('startup');
+        // Wait for complete educational cycle before proceeding
+        await waitForEducationalCycle('startup');
         
         console.log('✅ Educational cycle completed, starting investment journey');
         
@@ -3481,8 +3512,29 @@ const rollDice = async () => {
         // Stop educational messages
         stopEducationalMessages();
         
-        // Start the investment journey
-        await startInvestmentJourney();
+        // Generate journey data
+        await generateJourneyData();
+        
+        // Mark first roll as completed
+        isFirstRoll.value = false;
+        
+        // Switch to journey phase
+        currentPhase.value = 'journey';
+        
+        // Start auto-progression
+        if (autoProgressEnabled.value) {
+          startAutoProgression();
+        }
+        
+        // Initialize timeline position
+        initializeTimelinePosition();
+        
+        // Initialize chart
+        nextTick(() => {
+          if (performanceChart.value) {
+            initializeChart();
+          }
+        });
         
         // Hide loading after journey is ready
         setTimeout(() => {
@@ -3495,17 +3547,59 @@ const rollDice = async () => {
         stopEducationalMessages();
         isFullScreenLoading.value = false;
         loadingMessage.value = '';
+        journeyError.value = error.message || 'Failed to generate journey data';
+        // Reset first roll flag on error
+        isFirstRoll.value = true;
       }
     } else {
       // For subsequent dice rolls, shorter duration
-      setTimeout(() => {
+      try {
+        await generateJourneyData();
+        isFirstRoll.value = false;
+        
+        setTimeout(() => {
+          stopEducationalMessages();
+          isFullScreenLoading.value = false;
+          loadingMessage.value = '';
+        }, 2000);
+      } catch (error) {
+        console.error('Journey generation failed:', error);
+        journeyError.value = error.message || 'Failed to generate journey data';
         stopEducationalMessages();
         isFullScreenLoading.value = false;
         loadingMessage.value = '';
-      }, 2000);
+      }
     }
+    
   }, 1000);
 };
+
+const waitForEducationalCycle = (phase) => {
+  return new Promise((resolve, reject) => {
+    const messages = educationalMessages[phase];
+    if (!messages || messages.length === 0) {
+      resolve();
+      return;
+    }
+    
+    // Calculate total time for complete cycle
+    const totalDuration = messages.reduce((sum, message) => sum + message.duration, 0);
+    
+    console.log(`🎓 Waiting for complete educational cycle: ${totalDuration}ms`);
+    
+    // Wait for complete cycle
+    setTimeout(() => {
+      resolve();
+    }, totalDuration);
+    
+    // Set timeout for maximum wait time (safety net)
+    setTimeout(() => {
+      console.log('⚠️ Educational cycle timeout - proceeding anyway');
+      resolve();
+    }, Math.max(totalDuration, 15000)); // Max 15 seconds
+  });
+};
+
 
 const rollDiceFromJourney = async () => {
   if (isRolling.value || isFullScreenLoading.value) return;
@@ -3527,7 +3621,7 @@ const rollDiceFromJourney = async () => {
     dice.isRolling = true;
   });
   
-  // Show random values quickly while rolling - DEFINE rollInterval here
+  // Show random values quickly while rolling
   const rollInterval = setInterval(() => {
     activeDice.value.forEach(dice => {
       dice.value = Math.floor(Math.random() * 6) + 1;
@@ -3535,7 +3629,7 @@ const rollDiceFromJourney = async () => {
   }, 150);
   
   setTimeout(async () => {
-    clearInterval(rollInterval); // Now rollInterval is properly defined
+    clearInterval(rollInterval);
     
     const finalValues = activeDice.value.map(() => Math.floor(Math.random() * 6) + 1);
     const total = finalValues.reduce((sum, val) => sum + val, 0);
@@ -3547,13 +3641,33 @@ const rollDiceFromJourney = async () => {
     
     diceRolls.value.push(total);
 
-        // Show multiplier option after 3 rolls
-    if (diceRolls.value.length >= 3) {
+    // **NEW: Calculate cumulative days and update start date**
+    const latestRollDays = total * diceMultiplier.value;
+    cumulativeDays.value += latestRollDays;
+    
+    // Update the start date for API call if not first roll
+    if (!isFirstRoll.value && currentJourneyEndDate.value) {
+      const previousEndDate = new Date(currentJourneyEndDate.value);
+      previousEndDate.setDate(previousEndDate.getDate() + 1);
+      journeySetup.value.startDate = previousEndDate.toISOString().split('T')[0];
+      console.log('📅 Updated start date for subsequent roll:', journeySetup.value.startDate);
+    }
+    
+    // Mark as not first roll after processing
+    isFirstRoll.value = false;
+
+    // Show multiplier option after certain rolls
+    if (diceRolls.value.length >= 2) {
       showMultiplierOption.value = true;
     }
     
     diceRollCount.value++;
     isRolling.value = false;
+    
+    // **FIXED: Always set rolling type to 'S' for normal dice rolling**
+    // This ensures that even after Five Year Term completion, 
+    // subsequent dice rolls use standard rolling type
+    rollingType.value = 'S';
     
     // Update loading message
     loadingMessage.value = 'Generating Extended Journey Data...';
@@ -3562,9 +3676,6 @@ const rollDiceFromJourney = async () => {
     const currentProgress = currentDayIndex.value;
     
     try {
- // Set rolling type to 'S' for normal dice rolling (this allows continued rolling after Five Year Term)
-    rollingType.value = 'S';
-      
       // Regenerate journey data with extended days
       await generateJourneyData();
       
@@ -3593,8 +3704,18 @@ const rollDiceFromJourney = async () => {
       loadingMessage.value = '';
       alert('Failed to extend journey. Please try again.');
     }
+    
   }, 1000);
 };
+
+
+const addDaysToDate = (dateString, days) => {
+  const date = new Date(dateString);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split('T')[0];
+};
+
+
 
 const startInvestmentJourney = async () => {
   // Remove the loading state management since it's handled in rollDice
@@ -3680,129 +3801,164 @@ const stopAutoProgression = () => {
     progressInterval.value = null;
   }
 };
-const generateJourneyData = async () => {
-  try {
-    // Calculate days based on rolling type
-    let daysToProcess;
-    const endDate = getEndDateForAPI();
-    
-    if (rollingType.value === 'F') {
-      daysToProcess = '1250'; // 5 years of trading days
-    } else if (rollingType.value === 'E') {
-      daysToProcess = Math.max(totalDays.value, 30).toString();
-    } else {
-      // For normal dice rolling, use only the latest dice value × custom multiplier
-      const latestDiceValue = diceRolls.value.length > 0 ? 
-        diceRolls.value[diceRolls.value.length - 1] : 5; // Default to 5 if no rolls
-      daysToProcess = (latestDiceValue * diceMultiplier.value).toString(); // Latest dice × custom multiplier
-    }
 
-    
-    
-    // Prepare API payload
-        const payload = {
-          portfolioId: currentPortfolioId.value,
-          Product: journeySetup.value.selectedProduct,
-          investment: journeySetup.value.amount.toString(),
-          DaysToProceed: daysToProcess,
-          numberOfStocks: journeySetup.value.numberOfStocks.toString(),
-          Startdate: journeySetup.value.startDate,
-          Enddate: endDate, // Add end date to payload
-          investmentType: journeySetup.value.investmentType,
-          rollingType: rollingType.value
-        };
-      console.log('✅ Journey Data Successfully Loaded:', {
-        totalDays: journeyDays.value.length,
-        rollingType: rollingType.value,
-        portfolioId: currentPortfolioId.value,
-        endDate: endDate  // Add this line
-      });
-    // Fetch data from API
+const generateJourneyData = async () => {
+  if (!isSetupComplete.value) {
+    journeyError.value = 'Please complete the setup first';
+    return;
+  }
+
+  isJourneyDataLoading.value = true;
+  journeyError.value = null;
+
+  // Calculate days to process based on rolling type
+  let daysToProcess;
+  let apiStartDate;
+  
+  if (rollingType.value === 'F') {
+    daysToProcess = 1825; // 5 years
+    apiStartDate = journeySetup.value.startDate;
+  } else if (rollingType.value === 'E') {
+    daysToProcess = Math.max(totalDays.value, 30);
+    apiStartDate = journeySetup.value.startDate;
+  } else {
+    // For normal dice rolling
+    const latestDiceValue = diceRolls.value.length > 0 ? 
+      diceRolls.value[diceRolls.value.length - 1] : 5;
+    daysToProcess = latestDiceValue * diceMultiplier.value;
+    apiStartDate = journeySetup.value.startDate;
+  }
+
+  // Calculate end date based on start date and days to process
+  const startDate = new Date(apiStartDate);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + daysToProcess - 1);
+  const endDateString = endDate.toISOString().split('T')[0];
+  
+  // **FIXED: For first roll, PrevEnddate should be same as Startdate**
+  let prevEndDate;
+  if (isFirstRoll.value || diceRolls.value.length <= 1) {
+    // First roll: PrevEnddate = Startdate
+    prevEndDate = apiStartDate;
+    console.log('🎲 First roll - using start date as PrevEnddate:', prevEndDate);
+  } else {
+    // Subsequent rolls: use the calculated end date
+    prevEndDate = endDateString;
+    console.log('🎲 Subsequent roll - using calculated end date as PrevEnddate:', prevEndDate);
+  }
+  
+  // Store the end date for next roll
+  currentJourneyEndDate.value = endDateString;
+
+  const payload = {
+    portfolioId: currentPortfolioId.value,
+    Product: journeySetup.value.selectedProduct,
+    investment: journeySetup.value.amount.toString(),
+    DaysToProceed: daysToProcess,
+    numberOfStocks: journeySetup.value.numberOfStocks.toString(),
+    Startdate: apiStartDate,
+    PrevEnddate: prevEndDate, // **FIXED: Use correct PrevEnddate logic**
+    rollingType: rollingType.value
+  };
+
+  console.log('🔄 API Payload:', payload);
+
+  try {
     const apiData = await fetchSmartVestData(payload);
     
-    if (!apiData || !apiData.DailyPortfolioDetails) {
-      throw new Error('Invalid API response - missing portfolio data');
+    // Store raw API response
+    rawApiData.value = apiData;
+    
+    // Update portfolio ID for subsequent calls
+    if (apiData.DailyPortfolioDetails && apiData.DailyPortfolioDetails.length > 0) {
+      const lastDay = apiData.DailyPortfolioDetails[apiData.DailyPortfolioDetails.length - 1];
+      currentPortfolioId.value = lastDay.PortfolioId;
+      console.log('📊 Updated portfolio ID for next call:', currentPortfolioId.value);
     }
     
-    // Map API data to journey structure
-    const newJourneyData = mapApiDataToJourney(apiData);
+    // Map API data to journey format
+    const mappedJourneyDays = mapApiDataToJourney(apiData);
     
-    if (newJourneyData.length === 0) {
-      throw new Error('No journey data received from API');
+    // For subsequent rolls, append to existing journey
+    if (!isFirstRoll.value && journeyDays.value.length > 0) {
+      // Remove the last day from previous journey to avoid overlap
+      const existingJourney = journeyDays.value.slice(0, -1);
+      
+      // Renumber the new days to continue from where we left off
+      const startDayNumber = existingJourney.length + 1;
+      const renumberedNewDays = mappedJourneyDays.map((day, index) => ({
+        ...day,
+        day: startDayNumber + index
+      }));
+      
+      // Combine existing journey with new days
+      journeyDays.value = [...existingJourney, ...renumberedNewDays];
+      console.log('🔗 Appended new journey days. Total days:', journeyDays.value.length);
+    } else {
+      // First roll - use new data as is
+      journeyDays.value = mappedJourneyDays;
+      console.log('🆕 Set initial journey days:', journeyDays.value.length);
     }
     
-    // Update journey data
-    journeyDays.value = newJourneyData;
+    // Reset current day index for new data
+    currentDayIndex.value = 0;
+    selectedDayIndex.value = null;
     
-    // Update portfolio ID if provided
-    if (newJourneyData.length > 0 && newJourneyData[0].portfolio?.portfolioId) {
-      currentPortfolioId.value = newJourneyData[0].portfolio.portfolioId.toString();
-    }
-    
-    console.log('✅ Journey Data Successfully Loaded:', {
+    console.log('✅ Journey data generated successfully', {
       totalDays: journeyDays.value.length,
-      rollingType: rollingType.value,
-      portfolioId: currentPortfolioId.value
+      startDate: journeyDays.value[0]?.date,
+      endDate: journeyDays.value[journeyDays.value.length - 1]?.date
     });
     
   } catch (error) {
-    console.error('❌ Error generating journey data:', error);
+    console.error('❌ Journey data generation failed:', error);
+    journeyError.value = error.message || 'Failed to generate journey data';
     throw error;
+  } finally {
+    isJourneyDataLoading.value = false;
   }
 };
 
+
+
+
 const handleChartMouseMove = (event) => {
-  console.log('🖱️ Mouse move detected on chart');
-  
   if (!chartDataPoints || chartDataPoints.length === 0) {
-    console.log('❌ No chart data points available');
+    hideChartTooltip();
     return;
   }
-  
- 
-  const rect = performanceChart.value.getBoundingClientRect();
+
+  const canvas = performanceChart.value;
+  const rect = canvas.getBoundingClientRect();
   const mouseX = event.clientX - rect.left;
   const mouseY = event.clientY - rect.top;
-  
- 
-  // Use the reactive padding values
+
   const padding = chartPadding.value;
   
   // Check if mouse is within chart bounds
-  const chartArea = {
-    left: padding.left,
-    right: rect.width - padding.right,
-    top: padding.top,
-    bottom: rect.height - padding.bottom
-  };
-  
- 
-  if (mouseX < chartArea.left || mouseX > chartArea.right ||
-      mouseY < chartArea.top || mouseY > chartArea.bottom) {
-    chartTooltip.value.visible = false;
+  if (mouseX < padding.left || mouseX > rect.width - padding.right ||
+      mouseY < padding.top || mouseY > rect.height - padding.bottom) {
+    hideChartTooltip();
     return;
   }
   
-  
   // Calculate which data point is closest to mouse X position
   const relativeX = mouseX - padding.left;
-  const chartWidth = chartArea.right - chartArea.left;
+  const chartWidth = rect.width - padding.left - padding.right;
   const percentage = relativeX / chartWidth;
   const dataIndex = Math.round(percentage * (chartDataPoints.length - 1));
   const clampedIndex = Math.max(0, Math.min(dataIndex, chartDataPoints.length - 1));
   
-  
   const closestPoint = chartDataPoints[clampedIndex];
   
-  if (closestPoint && closestPoint.data) {
-    console.log('✅ Valid data point found, showing tooltip', closestPoint.data);
+  if (closestPoint?.data) {
+    console.log('✅ Tooltip for API day:', closestPoint.data.day);
     
-    // Tooltip positioning
     let tooltipX = mouseX + 15;
     let tooltipY = mouseY - 50;
     
-    // Keep tooltip within bounds
-    const tooltipWidth = 200;
+    // Keep tooltip in bounds
+    const tooltipWidth = 280;
     const tooltipHeight = 150;
     
     if (tooltipX + tooltipWidth > rect.width - 10) {
@@ -3821,15 +3977,31 @@ const handleChartMouseMove = (event) => {
       visible: true,
       x: tooltipX,
       y: tooltipY,
-      data: closestPoint.data
+      data: {
+        day: closestPoint.data.day,
+        date: closestPoint.data.date,
+        PortfolioValue: closestPoint.data.portfolioValue,
+        IndexValue: closestPoint.data.indexValue,
+        IndexPrice: closestPoint.data.indexValue,
+        portfolioNav: (closestPoint.data.portfolioNav - 1).toFixed(2),
+        indexNav: (closestPoint.data.indexNav - 1).toFixed(2),
+        // Include any additional data for tooltip
+        ...closestPoint.data
+      }
     };
-
-    console.log('ToolTipData', chartTooltip.value);
-    
   } else {
-    chartTooltip.value.visible = false;
+    hideChartTooltip();
   }
 };
+
+
+
+
+
+const hideChartTooltip = () => {
+  chartTooltip.value.visible = false;
+};
+
 
 // Add this computed property or method
 const getCurrentQuotes = () => {
@@ -3859,241 +4031,404 @@ const getPhaseSubtitle = () => {
 
 const initializeChart = () => {
   const ctx = performanceChart.value?.getContext('2d');
-  if (!ctx || !journeyDays.value.length) return;
-  
-  const canvas = performanceChart.value;
-  const width = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-  const height = canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-  canvas.style.width = 100 + '%';
-  canvas.style.height = canvas.offsetHeight + 'px';
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  
-  // Use SmartVestGraphData for chart - NAV values
-  const smartVestData = journeyDays.value.filter(day => day.smartVestData);
-  
-  if (smartVestData.length === 0) {
-    console.warn('No SmartVestGraphData available for chart');
+  if (!ctx) {
+    console.log('❌ Chart initialization failed - missing context');
     return;
   }
+
+  // FIXED: Use rawApiData directly instead of journeyDays for chart
+  if (!rawApiData.value?.SmartVestGraphData || rawApiData.value.SmartVestGraphData.length === 0) {
+    console.log('❌ No SmartVestGraphData available for chart');
+    return;
+  }
+
+  const allApiData = rawApiData.value.SmartVestGraphData;
+  console.log('📊 Initializing chart with ALL SmartVestGraphData:', allApiData.length, 'data points');
+
+  // Canvas setup
+  const canvas = performanceChart.value;
+  const rect = canvas.getBoundingClientRect();
+  const devicePixelRatio = window.devicePixelRatio || 1;
   
-  // Extract NAV data from SmartVestGraphData
-  const portfolioNavData = smartVestData.map(day => (day.smartVestData.PortfolioNav - 1) * 100);
-  const indexNavData = smartVestData.map(day => (day.smartVestData.IndexNav - 1) * 100);
- 
-  // Initialize chartDataPoints array
-  chartDataPoints = smartVestData.map((day, index) => ({
-    index,
-    data: day,
-    x: 0,
-    y: 0,
-    indexY: 0
-  }));
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
   
-  ctx.clearRect(0, 0, width, height);
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+
+  // Extract Portfolio NAV and Index NAV data (converted to percentage returns)
+  const portfolioReturns = allApiData.map((day, index) => {
+    const portfolioReturn = (day.PortfolioNav - 1) * 100;
+    if (index < 5) console.log(`Day ${index + 1} Portfolio NAV: ${day.PortfolioNav}, Return: ${portfolioReturn.toFixed(2)}%`);
+    return portfolioReturn;
+  });
   
-  const chartWidth = canvas.offsetWidth;
-  const chartHeight = canvas.offsetHeight;
+  const indexReturns = allApiData.map((day, index) => {
+    const indexReturn = (day.IndexNav - 1) * 100;
+    if (index < 5) console.log(`Day ${index + 1} Index NAV: ${day.IndexNav}, Return: ${indexReturn.toFixed(2)}%`);
+    return indexReturn;
+  });
+
+  console.log('📊 Chart data summary:', {
+    totalDays: allApiData.length,
+    portfolioRange: `${Math.min(...portfolioReturns).toFixed(2)}% to ${Math.max(...portfolioReturns).toFixed(2)}%`,
+    indexRange: `${Math.min(...indexReturns).toFixed(2)}% to ${Math.max(...indexReturns).toFixed(2)}%`,
+    firstFewPortfolioReturns: portfolioReturns.slice(0, 5),
+    firstFewIndexReturns: indexReturns.slice(0, 5)
+  });
+
+  // Initialize chartDataPoints with ALL API data
+  chartDataPoints = allApiData.map((apiDay, index) => {
+    // Find corresponding daily data
+    const dailyData = rawApiData.value.SmartVestGraphData[index];
+    return {
+      index,
+      data: {
+        day: index + 1,
+        date: dailyData?.TransactionDate?.split('T')[0] || '',
+        portfolioValue: apiDay.PortfolioValue,
+        indexValue: apiDay.IndexValue,
+        portfolioNav: apiDay.PortfolioNav,
+        indexNav: apiDay.IndexNav,
+        PortfolioValue: apiDay.PortfolioValue,
+        IndexValue: apiDay.IndexValue,
+        IndexPrice: apiDay.IndexValue,
+        // Include daily data for tooltip
+        ...dailyData
+      },
+      x: 0,
+      y: 0,
+      indexY: 0
+    };
+  });
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   const padding = chartPadding.value;
-  const graphWidth = chartWidth - padding.left - padding.right;
-  const graphHeight = chartHeight - padding.top - padding.bottom;
-  
-  const allData = [...portfolioNavData, ...indexNavData];
-  const maxValue = Math.max(...allData, 2);
-  const minValue = Math.min(...allData, -2);
+  const chartWidth = rect.width - padding.left - padding.right;
+  const chartHeight = rect.height - padding.top - padding.bottom;
+
+  // Calculate scale using ALL data points
+  const allReturns = [...portfolioReturns, ...indexReturns];
+  const maxValue = Math.max(...allReturns, 2);
+  const minValue = Math.min(...allReturns, -2);
   const range = maxValue - minValue;
   
-  // Draw horizontal grid lines
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-  ctx.lineWidth = 0.5;
+  const paddedMax = maxValue + range * 0.1;
+  const paddedMin = minValue - range * 0.1;
+  const paddedRange = paddedMax - paddedMin;
+
+  console.log('📊 Chart scale calculated:', { 
+    dataPoints: allReturns.length,
+    range: `${paddedMin.toFixed(2)}% to ${paddedMax.toFixed(2)}%`
+  });
+
+  // Helper functions
+  const getYPosition = (value) => {
+    if (paddedRange === 0) return chartHeight / 2;
+    return chartHeight - ((parseFloat(value) - paddedMin) / paddedRange) * chartHeight;
+  };
+
+  const getXPosition = (index, totalPoints) => {
+    if (totalPoints <= 1) return chartWidth / 2;
+    return (index / (totalPoints - 1)) * chartWidth;
+  };
+
+  // Draw grid lines
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
   
-  for (let i = 0; i <= 4; i++) {
-    const y = padding.top + (i * graphHeight / 4);
+  for (let i = 0; i <= 5; i++) {
+    const y = padding.top + (i / 5) * chartHeight;
     ctx.beginPath();
     ctx.moveTo(padding.left, y);
-    ctx.lineTo(chartWidth - padding.right, y);
+    ctx.lineTo(padding.left + chartWidth, y);
     ctx.stroke();
   }
   
-  // Generate X-axis labels
-  const xAxisLabels = getXAxisLabels();
-  
-  // Draw vertical grid lines
-  xAxisLabels.forEach(labelData => {
-    const x = padding.left + (labelData.index * graphWidth / Math.max(1, smartVestData.length - 1));
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 0.5;
+  const verticalLines = Math.min(10, Math.max(5, Math.floor(allApiData.length / 200)));
+  for (let i = 0; i <= verticalLines; i++) {
+    const x = padding.left + (i / verticalLines) * chartWidth;
     ctx.beginPath();
     ctx.moveTo(x, padding.top);
-    ctx.lineTo(x, chartHeight - padding.bottom);
+    ctx.lineTo(x, padding.top + chartHeight);
     ctx.stroke();
-  });
+  }
+
+  // Draw axes
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
   
-  // Draw zero line
-  if (minValue < 0 && maxValue > 0) {
-    const zeroY = padding.top + ((maxValue - 0) / range * graphHeight);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, zeroY);
-    ctx.lineTo(chartWidth - padding.right, zeroY);
-    ctx.stroke();
-  }  
- 
-  // Draw X-axis labels
+  // Y-axis
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top);
+  ctx.lineTo(padding.left, padding.top + chartHeight);
+  ctx.stroke();
+  
+  // X-axis
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top + chartHeight);
+  ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+  ctx.stroke();
+  
+  // Y-axis labels
+  ctx.fillStyle = '#64748b';
+  ctx.font = '12px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  
+  for (let i = 0; i <= 5; i++) {
+    const value = paddedMax - (i / 5) * (paddedMax - paddedMin);
+    const y = padding.top + (i / 5) * chartHeight;
+    const label = value >= 0 ? `+${value.toFixed(1)}%` : `${value.toFixed(1)}%`;
+    ctx.fillText(label, padding.left - 10, y);
+  }
+  
+  // FIXED X-axis labels with proper end month display
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
-  ctx.font = chartAxisConfig.value.isLongTerm ? '12px Arial' : '11px Arial';
-  ctx.fontWeight = 'bold'; 
-    
+  
+  const xAxisLabels = getXAxisLabelsFixed();
   xAxisLabels.forEach(labelData => {
-    const x = padding.left + (labelData.index * graphWidth / Math.max(1, smartVestData.length - 1));
-    const y = chartHeight - padding.bottom + 8;
+    const x = padding.left + getXPosition(labelData.index, allApiData.length);
+    const y = padding.top + chartHeight + 10;
     
     // Draw tick mark
-    ctx.strokeStyle = 'rgba(13, 71, 161, 0.6)'; // Blue tick marks
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(x, chartHeight - padding.bottom);
-    ctx.lineTo(x, chartHeight - padding.bottom + 6);
+    ctx.moveTo(x, padding.top + chartHeight);
+    ctx.lineTo(x, padding.top + chartHeight + 6);
     ctx.stroke();
     
-    // Draw label with better visibility
-    ctx.fillStyle = '#0d47a1'; // Dark blue color
-    ctx.strokeStyle = '#ffffff'; // White outline for better contrast
-    ctx.lineWidth = 3;
-    ctx.strokeText(labelData.label, x, y); // Draw outline first
-    ctx.fillText(labelData.label, x, y); // Then fill text
+    // Draw label
+    ctx.fillStyle = '#475569';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText(labelData.label, x, y);
   });
+
+  // Draw lines without points for smooth appearance
+  const drawSmoothLine = (data, color, fillColor, lineWidth) => {
+    if (data.length === 0) return;
     
-  // Reset context properties
-  ctx.textAlign = 'start';
-  ctx.textBaseline = 'alphabetic';
+    // Draw fill area
+    ctx.fillStyle = fillColor;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top + getYPosition(data[0]));
+    
+    data.forEach((value, index) => {
+      const x = padding.left + getXPosition(index, data.length);
+      const y = padding.top + getYPosition(value);
+      ctx.lineTo(x, y);
+    });
+    
+    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    ctx.lineTo(padding.left, padding.top + chartHeight);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw smooth line (no points)
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top + getYPosition(data[0]));
+    
+    data.forEach((value, index) => {
+      const x = padding.left + getXPosition(index, data.length);
+      const y = padding.top + getYPosition(value);
+      ctx.lineTo(x, y);
+    });
+    
+    ctx.stroke();
+  };
+
+  // Draw both lines
+  drawSmoothLine(indexReturns, '#42A5F5', 'rgba(66, 165, 245, 0.2)', 2);
+  drawSmoothLine(portfolioReturns, '#66BB6A', 'rgba(102, 187, 106, 0.2)', 3);
+
+  // Update chartDataPoints with positions
+  chartDataPoints.forEach((point, index) => {
+    point.x = padding.left + getXPosition(index, allApiData.length);
+    point.y = padding.top + getYPosition(portfolioReturns[index]);
+    point.indexY = padding.top + getYPosition(indexReturns[index]);
+  });
+
+  console.log('✅ Chart initialized with ALL', chartDataPoints.length, 'API data points');
+};
+
+const formatDateForTooltip = (dateString) => {
+  if (!dateString) return '';
   
-  // Function to check if lines are too close and calculate offsets
-  const calculateLineOffsets = (portfolioData, indexData) => {
-    let portfolioOffset = 0;
-    let indexOffset = 0;
+  const dateObj = new Date(dateString);
+  
+  // Format as "Monday, Jan 15, 2024"
+  return dateObj.toDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+
+const formatDateForAxis = (dateString, isLongTerm) => {
+  if (!dateString) return '';
+  
+  const dateObj = new Date(dateString);
+  
+  if (isLongTerm) {
+    // For long-term: show years like "2024"
+    return dateObj.getFullYear().toString();
+  } else {
+    // For short-term: show months like "Jan 24" or "Jan 2024"
+    const month = dateObj.toLocaleDateString('en-GB', { month: 'short' });
+    const year = dateObj.getFullYear().toString().slice(-2); // Last 2 digits
+    return `${month} ${year}`;
+  }
+};
+
+
+
+const getXAxisLabelsFixed = () => {
+  if (!rawApiData.value?.SmartVestGraphData || rawApiData.value.SmartVestGraphData.length === 0) {
+    console.log('❌ No SmartVestGraphData available for chart labels');
+    return [];
+  }
+  
+  const dailyData = rawApiData.value.SmartVestGraphData;
+  const totalDays = dailyData.length;
+  const isLongTerm = totalDays > 1095; // More than 3 years
+  
+  console.log('📅 X-axis labels generation:', {
+    totalDays,
+    isLongTerm,
+    startDate: dailyData[0]?.TransactionDate?.split('T')[0],
+    endDate: dailyData[totalDays - 1]?.TransactionDate?.split('T')[0]
+  });
+  
+  const labels = [];
+  
+  if (isLongTerm) {
+    // For long-term: Show years based on actual dates
+    const startDate = new Date(dailyData[0].TransactionDate);
+    const endDate = new Date(dailyData[totalDays - 1].TransactionDate);
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
     
-    // Calculate average difference between the lines
-    const differences = portfolioData.map((val, index) => 
-      Math.abs(val - (indexData[index] || 0))
-    );
-    const avgDifference = differences.reduce((sum, diff) => sum + diff, 0) / differences.length;
+    console.log('📅 Year range:', startYear, 'to', endYear);
     
-    // If average difference is very small (lines are close), add offsets
-    const threshold = range * 0.02; // 2% of the range
+    // Always add start year
+    labels.push({
+      index: 0,
+      date: dailyData[0].TransactionDate.split('T')[0],
+      label: startYear.toString()
+    });
     
-    if (avgDifference < threshold) {
-      const offsetAmount = Math.max(3, graphHeight * 0.008); // Minimum 3px offset
-      portfolioOffset = -offsetAmount; // Move portfolio line up
-      indexOffset = offsetAmount;      // Move index line down
+    // Add intermediate years
+    for (let year = startYear + 1; year < endYear; year++) {
+      // Find the first day in this year
+      const yearStartTarget = new Date(year, 0, 1);
+      let closestIndex = 0;
+      let closestDistance = Infinity;
       
-      console.log('📊 Lines are close, applying offsets:', {
-        avgDifference,
-        threshold,
-        portfolioOffset,
-        indexOffset
+      dailyData.forEach((day, index) => {
+        const dayDate = new Date(day.TransactionDate);
+        const distance = Math.abs(dayDate.getTime() - yearStartTarget.getTime());
+        
+        if (distance < closestDistance && index > 50 && index < totalDays - 50) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+      
+      if (closestIndex > 0) {
+        labels.push({
+          index: closestIndex,
+          date: dailyData[closestIndex].TransactionDate.split('T')[0],
+          label: year.toString()
+        });
+      }
+    }
+    
+    // Always add end year if different from start
+    if (endYear > startYear) {
+      labels.push({
+        index: totalDays - 1,
+        date: dailyData[totalDays - 1].TransactionDate.split('T')[0],
+        label: endYear.toString()
       });
     }
     
-    return { portfolioOffset, indexOffset };
-  };
+  } else {
+    // For shorter periods: Show months based on actual dates
+    const maxLabels = Math.min(8, Math.max(4, Math.floor(totalDays / 60)));
+    
+    // Always include start date
+    const startDate = new Date(dailyData[0].TransactionDate);
+    labels.push({
+      index: 0,
+      date: dailyData[0].TransactionDate.split('T')[0],
+      label: formatDateForAxis(dailyData[0].TransactionDate.split('T')[0], false)
+    });
+    
+    // Add intermediate month labels
+    const step = Math.floor((totalDays - 1) / (maxLabels - 1));
+    for (let i = 1; i < maxLabels - 1; i++) {
+      const index = Math.min(i * step, totalDays - 2);
+      
+      // Avoid labels that are too close together (minimum 30 days)
+      const tooClose = labels.some(existing => Math.abs(existing.index - index) < 30);
+      
+      if (!tooClose && dailyData[index]) {
+        labels.push({
+          index: index,
+          date: dailyData[index].TransactionDate.split('T')[0],
+          label: formatDateForAxis(dailyData[index].TransactionDate.split('T')[0], false)
+        });
+      }
+    }
+    
+    // Always add end date if far enough from last label
+    const lastIndex = totalDays - 1;
+    const lastLabel = labels[labels.length - 1];
+    if (lastIndex - lastLabel.index > 30 && dailyData[lastIndex]) {
+      labels.push({
+        index: lastIndex,
+        date: dailyData[lastIndex].TransactionDate.split('T')[0],
+        label: formatDateForAxis(dailyData[lastIndex].TransactionDate.split('T')[0], false)
+      });
+    }
+  }
   
-  // Enhanced line drawing function with offset support
-  const drawCleanLine = (data, color, shadowColor, lineWidth = 3, yOffset = 0) => {
-    if (data.length === 0) return;
-    const padding = chartPadding.value; 
-    
-    // Draw shadow
-    ctx.strokeStyle = shadowColor;
-    ctx.lineWidth = lineWidth + 2;
-    ctx.beginPath();
-    data.forEach((value, index) => {
-      const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
-      const y = padding.top + ((maxValue - value) / range * graphHeight) + yOffset + 1;
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    ctx.stroke();
-    
-    // Draw main line
-    ctx.strokeStyle = color;
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    data.forEach((value, index) => {
-      const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
-      const y = padding.top + ((maxValue - value) / range * graphHeight) + yOffset;
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    ctx.stroke();
-    
-    // Add gradient fill
-    ctx.save();
-    ctx.globalAlpha = 0.1;
-    const gradient = ctx.createLinearGradient(0, padding.top, 0, chartHeight - padding.bottom);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    data.forEach((value, index) => {
-      const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
-      const y = padding.top + ((maxValue - value) / range * graphHeight) + yOffset;
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    ctx.lineTo(chartWidth - padding.right, chartHeight - padding.bottom);
-    ctx.lineTo(padding.left, chartHeight - padding.bottom);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    
-    // Store coordinates for mouse interaction
-    data.forEach((value, index) => {
-      if (chartDataPoints[index]) {
-        const x = padding.left + (index * graphWidth / Math.max(1, data.length - 1));
-        const y = padding.top + ((maxValue - value) / range * graphHeight) + yOffset;
-        
-        // Store coordinates based on line type
-        chartDataPoints[index].x = x;
-        
-        if (color === '#66BB6A') {
-          // Portfolio line
-          chartDataPoints[index].y = y;
-        } else if (color === '#42A5F5') {
-          // Index line  
-          chartDataPoints[index].indexY = y;
-        }
-      }
-    });
-  };
-
-  // Calculate offsets to prevent line overlap
-  const { portfolioOffset, indexOffset } = calculateLineOffsets(portfolioNavData, indexNavData);
-
-  // Draw lines with offsets to prevent overlap
-  drawCleanLine(indexNavData, '#42A5F5', 'rgba(66, 165, 245, 0.3)', 2, indexOffset);
-  drawCleanLine(portfolioNavData, '#66BB6A', 'rgba(102, 187, 106, 0.3)', 3, portfolioOffset);
-
-  // Debug logging
-  console.log('Chart initialized with data points:', chartDataPoints.length);
-  console.log('Sample data point:', chartDataPoints[0]);
-  console.log('Chart axis config:', chartAxisConfig.value);
-  console.log('X-axis labels:', xAxisLabels);
+  // Remove duplicates and sort by index
+  const uniqueLabels = labels
+    .filter((label, index, self) => 
+      index === self.findIndex(l => l.index === label.index)
+    )
+    .sort((a, b) => a.index - b.index);
+  
+  console.log('📅 Final X-axis labels:', uniqueLabels.map(l => `${l.label} (index: ${l.index})`));
+  return uniqueLabels;
 };
 
-const hideChartTooltip = () => {
-  chartTooltip.value.visible = false;
-};
+
+
+const totalJourneyDays = computed(() => {
+  return cumulativeDays.value;
+});
+
+const totalDays = computed(() => {
+  if (diceRolls.value.length === 0) return 5; // Base 5 days if no rolls
+  
+  // Show cumulative days from all rolls
+  return cumulativeDays.value || (diceRolls.value[diceRolls.value.length - 1] * diceMultiplier.value);
+});
+
+
 
 const goToDay = (index) => {
   console.log('🎯 Navigating to day:', index + 1);
@@ -4124,48 +4459,50 @@ const goToDay = (index) => {
 const startNewJourney = () => {
   stopAutoProgression();
   
-  // Add loading state for smooth transition
-  isFullScreenLoading.value = true;
-  loadingMessage.value = 'Starting New Journey...';
+  // **NEW: Reset date tracking**
+  cumulativeDays.value = 0;
+  currentJourneyEndDate.value = '';
+  isFirstRoll.value = true;
+  
+  // Reset all existing states
+  journeyDays.value = [];
+  diceRolls.value = [];
+  diceRollCount.value = 1;
+  currentDayIndex.value = 0;
+  selectedDayIndex.value = null;
+  showFinalResults.value = false;
+  isJourneyDataLoading.value = false;
+  journeyError.value = null;
+  autoProgressEnabled.value = true;
+  currentPortfolioId.value = "0";
+  isJourneyCompleting.value = false;
   hasFiveYearTermCompleted.value = false;
   hasFiveYearTermBeenUsed.value = false;
-
-    // Reset Five Year Term flags
-  hasFiveYearTermCompleted.value = false;
-  hasFiveYearTermBeenUsed.value = false;
-
-  // Reset multiplier options
+  rollingType.value = 'S';
+  
+  // Reset timeline and pagination
+  timelineStartIndex.value = 0;
+  startStockPage.value = 0;
+  eventsPage.value = 0;
+  finalStockPage.value = 0;
+  
+  // Reset dice display
+  activeDice.value = [
+    { value: 1, isRolling: false },
+    { value: 1, isRolling: false }
+  ];
+  
+  // Reset multiplier
   diceMultiplier.value = 5;
   showMultiplierOption.value = false;
   
-  console.log('🔄 Starting new investment journey...');
+  // Reset phase
+  currentPhase.value = 'setup';
   
-  // Navigate to new journey page and reload
-  setTimeout(() => {
-    const currentUrl = window.location.href;
-    
-    // Ensure we're navigating to the journey page
-    let newJourneyUrl;
-    if (currentUrl.includes('/journey')) {
-      // Already on journey page, just reload
-      newJourneyUrl = currentUrl;
-    } else {
-      // Add /journey to current URL
-      newJourneyUrl = currentUrl.endsWith('/') ? 
-        currentUrl + 'journey' : 
-        currentUrl + '/journey';
-    }
-    
-    // Navigate to journey page and reload
-    window.location.href = newJourneyUrl;
-    
-    // Force reload after navigation
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-    
-  }, 1000); // Brief delay to show loading message
+  console.log('🔄 New journey started - all states reset');
 };
+
+
 
 const retryJourney = () => {
   journeyError.value = null;
@@ -4302,20 +4639,13 @@ html {
   }
 }
 
-/* Main Container */
-.journey-view {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 30%, #bae6fd 60%, #7dd3fc 100%);
-  position: relative;
-  overflow-x: scroll;
-}
-
 /* Animated Background */
 .journey-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 90%;
   z-index: -1;
   pointer-events: none;
 }
@@ -4323,7 +4653,7 @@ html {
 .floating-shapes {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 90%;
 }
 
 .shape {
@@ -4361,6 +4691,19 @@ html {
   padding: 0.2rem;
   display: flex;
   flex-direction: column;
+  height: 100%; /* Add this */
+  min-height: 100%; /* Add this */
+}
+
+.combined-setup-phase {
+  max-width: min(100vw, 95vw);
+  margin: 0 auto;
+  padding: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%; /* Add this */
+  overflow-y: auto; /* Add this */
 }
 
 /* Top Layout Row - Journey Phase Layout */
@@ -6239,15 +6582,6 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
   z-index: 6;
 }
 
-.combined-setup-phase {
-  max-width: min(100vw, 95vw);
-  margin: 0 auto;
-  padding: 0.2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
 .combined-header {
   text-align: center;
   margin-bottom: 0.8rem;
@@ -6310,14 +6644,6 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
   min-height: 500px;
 }
 
-@media (max-width: 900px) {
-  .two-pane-setup-layout {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    min-height: auto;
-  }
-}
-
 .configuration-pane {
   background: linear-gradient(145deg, 
     rgba(240, 249, 255, 0.95) 0%, 
@@ -6361,7 +6687,7 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
 .config-form-sections {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   position: relative;
   z-index: 2;
 }
@@ -6896,7 +7222,7 @@ background: linear-gradient(114deg, rgb(226 11 11 / 70%), rgba(255, 255, 255, 0.
 .sparkle-effects-main {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 90%;
   top: 0;
   left: 0;
   pointer-events: none;
@@ -11156,14 +11482,14 @@ background: rgb(1 7 22 / 20%);
   font-weight: 600;
 }
 
-/* JOURNEY COMPONENT FIXES */
 .journey-view {
-  height: 100%;
-  max-height: 100%;
-  overflow-y: auto;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 30%, #bae6fd 60%, #7dd3fc 100%);
+  position: relative;
   overflow-x: hidden;
-  padding: 0.5rem;
-  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100%;
+  min-height: 100%;
+  padding: 0.2rem;
 }
 
 @media (max-width: 768px) {
@@ -11175,6 +11501,164 @@ background: rgb(1 7 22 / 20%);
 @media (max-width: 480px) {
   .journey-view {
     padding: 0.2rem;
+  }
+}
+
+.cash-amount.updating {
+  animation: cashUpdatePending 2s infinite ease-in-out;
+}
+
+@keyframes cashUpdatePending {
+  0%, 100% { 
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.05);
+    color: #fbbf24;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+  }
+}
+
+/* Educational Logo Styles */
+.educational-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.logo-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    inset 0 2px 6px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible; /* Changed to visible so full logo shows */
+  animation: logoFloat 4s infinite ease-in-out;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  padding: 15px; /* Increased padding to ensure full logo fits */
+}
+
+.educational-logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.logo-ring {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  border-radius: 50%;
+  animation: logoRingPulse 3s infinite ease-in-out;
+}
+
+.logo-ring-outer {
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 50%;
+  animation: logoRingPulse 3s infinite ease-in-out 0.5s;
+}
+
+/* Logo Animations */
+@keyframes logoFloat {
+  0%, 100% { 
+    transform: translateY(0) scale(1);
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.1),
+      inset 0 2px 6px rgba(255, 255, 255, 0.8),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+  }
+  50% { 
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      0 15px 40px rgba(0, 0, 0, 0.15),
+      inset 0 3px 8px rgba(255, 255, 255, 0.9),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes logoRingPulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.6;
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 1;
+    border-color: rgba(99, 102, 241, 0.8);
+  }
+}
+
+/* Hover effect for logo */
+.logo-circle:hover {
+  transform: scale(1.05);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.logo-circle:hover .educational-logo {
+  transform: scale(1.05); /* Reduced scale to keep logo within circle */
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
+}
+
+.logo-circle:hover .logo-ring {
+  border-color: rgba(59, 130, 246, 0.8);
+  animation-duration: 1.5s;
+}
+
+.logo-circle:hover .logo-ring-outer {
+  border-color: rgba(99, 102, 241, 0.6);
+  animation-duration: 1.5s;
+}
+
+@media (max-width: 600px) {
+  .logo-circle {
+    width: 100px;
+    height: 100px;
+    padding: 12px;
+  }
+  
+  .educational-logo {
+    width: 71px;
+    height: 71px;
+  }
+  
+  .educational-logo-container {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-circle {
+    width: 80px;
+    height: 80px;
+    padding: 10px;
+  }
+  
+  .educational-logo {
+    width: 56px;
+    height: 56px;
   }
 }
 </style>
