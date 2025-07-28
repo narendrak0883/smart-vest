@@ -213,6 +213,7 @@
           @error="$event.target.style.display='none'"
         />
         <div class="nobuy-logo-ring"></div>
+        <div class="nobuy-logo-ring-outer"></div>
       </div>
     </div>
 
@@ -226,7 +227,7 @@
     <!-- Message Content -->
     <div class="nobuy-message-container">
       <div class="nobuy-message-content">
-        <p class="nobuy-reason-text">{{ noBuyReason }}</p>
+        <p class="nobuy-reason-text">{{ noBuyMessage }}</p>
         <div class="nobuy-info-note">
           <span class="info-badge">ℹ️</span>
           <span class="info-text">This is based on our systematic investment rules</span>
@@ -244,7 +245,7 @@
 
     <!-- Auto-close Indicator -->
     <div class="nobuy-footer">
-      <p class="auto-close-text">Auto-closing in 3 seconds...</p>
+      <p class="auto-close-text">Auto-closing in 5 seconds...</p>
       <div class="auto-close-progress">
         <div class="auto-close-bar"></div>
       </div>
@@ -769,11 +770,11 @@
         </div>
         <div class="tooltip-content-chart">
           <div class="tooltip-row">
-            <div class="tooltip-label">Portfolio Return</div>
+            <div class="tooltip-label">Portfolio NAV</div>
             <div class="tooltip-value">{{ chartTooltip.data?.portfolioNav.toFixed(2) }}</div>
           </div>
           <div class="tooltip-row">
-            <div class="tooltip-label">Index Return</div>
+            <div class="tooltip-label">Index NAV</div>
             <div class="tooltip-value">{{ chartTooltip.data?.indexNav.toFixed(2) }}</div>
           </div>
           <div class="tooltip-row">
@@ -904,7 +905,7 @@
                 <button 
                   class="roll-dice-btn"
                   @click="rollDiceFromJourney"
-                  :disabled="isRolling"
+                  :disabled="isRolling || isJourneyEnded"
                   :class="{ 'rolling': isRolling }"
                 >
                   <span class="roll-btn-icon">🎲</span>
@@ -969,43 +970,47 @@
                 </div>
           
                 <div class="control-buttons-grid">
-                  <button 
-                    class="journey-control-btn five-year-btn"
-                    @click="handleFiveYearTerm"
-                    :disabled="diceRollCount < 3 || isRolling || isJourneyDataLoading || hasFiveYearTermBeenUsed"
-                    :class="{ 
-                    'enabled': diceRollCount >= 3 && !isJourneyDataLoading && !hasFiveYearTermBeenUsed,
-                    'loading': isJourneyDataLoading && rollingType === 'F'
-                  }"
-                  >
+                      <button 
+                        class="journey-control-btn five-year-btn"
+                        @click="handleFiveYearTerm"
+                        :disabled="diceRollCount < 3 || isRolling || isJourneyDataLoading || hasFiveYearTermBeenUsed || isJourneyEnded"
+                        :class="{ 
+                          'enabled': diceRollCount >= 3 && !isJourneyDataLoading && !hasFiveYearTermBeenUsed && !isJourneyEnded,
+                          'loading': isJourneyDataLoading && rollingType === 'F',
+                          'journey-ended': isJourneyEnded
+                        }"
+                      >
                     <span class="control-btn-icon">{{ isJourneyDataLoading && rollingType === 'F' ? '⏳' : '📅' }}</span>
-                      <span class="control-btn-text">
+                        <span class="control-btn-text">
                         {{ isJourneyDataLoading && rollingType === 'F' ? 'Processing...' : 
                           hasFiveYearTermBeenUsed ? 'Five Year Used' : 'Five Year Term' }}
-                      </span>
-                      <span class="control-btn-subtitle">
+                        </span>
+                        <span class="control-btn-subtitle">
                         {{ isJourneyDataLoading && rollingType === 'F' ? 'Please wait' : 
                           hasFiveYearTermBeenUsed ? 'Already completed' : 'Long-term journey' }}
-                      </span>
+                        </span>
                   </button>
                   
-                  <button 
-                    class="journey-control-btn end-journey-btn-dice"
-                    @click="handleEndJourney"
-                    :disabled="diceRollCount < 3 || isRolling || isJourneyDataLoading || !hasFiveYearTermCompleted"
-                    :class="{ 
-                      'enabled': diceRollCount >= 3 && hasFiveYearTermCompleted && !isJourneyDataLoading,
-                      'loading': isJourneyDataLoading && rollingType === 'E'
-                    }"
-                  >
+                    <button 
+                      class="journey-control-btn end-journey-btn-dice"
+                      @click="handleEndJourney"
+                      :disabled="diceRollCount < 3 || isRolling || isJourneyDataLoading || !hasFiveYearTermCompleted || isJourneyEnded"
+                      :class="{ 
+                        'enabled': diceRollCount >= 3 && hasFiveYearTermCompleted && !isJourneyDataLoading && !isJourneyEnded,
+                        'loading': isJourneyDataLoading && rollingType === 'E',
+                        'journey-ended': isJourneyEnded
+                      }"
+                    >
                     <span class="control-btn-icon">{{ isJourneyDataLoading && rollingType === 'E' ? '⏳' : '🏁' }}</span>
-                    <span class="control-btn-text">
-                      {{ isJourneyDataLoading && rollingType === 'E' ? 'Ending...' : 'End Journey' }}
-                    </span>
-                    <span class="control-btn-subtitle">
-                      {{ isJourneyDataLoading && rollingType === 'E' ? 'Please wait' : 
-                        hasFiveYearTermCompleted ? 'Complete now' : 'Complete 5-year first' }}
-                    </span>
+                      <span class="control-btn-text">
+                        {{ isJourneyDataLoading && rollingType === 'E' ? 'Ending...' : 
+                          isJourneyEnded ? 'Journey Ended' : 'End Journey' }}
+                      </span>
+                      <span class="control-btn-subtitle">
+                        {{ isJourneyDataLoading && rollingType === 'E' ? 'Please wait' : 
+                          isJourneyEnded ? 'Completed' :
+                          hasFiveYearTermCompleted ? 'Complete now' : 'Complete 5-year first' }}
+                      </span>
                   </button>
                 </div>
 
@@ -1137,7 +1142,7 @@
                   </div>
                   <div class="stocks-presets">
                     <button 
-                      v-for="num in [5, 10, 15, 20, 25]" 
+                      v-for="num in [5, 10]" 
                       :key="num"
                       :class="['preset-btn', { active: journeySetup.numberOfStocks === num }]"
                       @click="journeySetup.numberOfStocks = num"
@@ -1460,8 +1465,9 @@ const rawApiData = ref(null);
 const chartApiData = ref([]);
 const cumulativeDays = ref(0); // Track total days from all dice rolls
 const showNoBuyDialog = ref(false)
-const noBuyReason = ref('')
+const noBuyMessage = ref('')
 const noBuyAutoCloseTimeout = ref(null)
+const isJourneyEnded = ref(false);
 
 
 const animationConfig = {
@@ -1733,7 +1739,7 @@ const startVivekamQuotes = () => {
   // Start quote cycling every 4 seconds
   quoteInterval.value = setInterval(() => {
     currentQuoteIndex.value = (currentQuoteIndex.value + 1) % quotesToUse.length
-  }, 4000)
+  }, 5000)
   
   console.log('🎭 Started Vivekam quotes cycling for', rollingType.value)
 }
@@ -2077,6 +2083,8 @@ const handleEndJourney = async () => {
       stopEducationalMessages();
       isFullScreenLoading.value = false;
       loadingMessage.value = '';
+      isJourneyEnded.value = true;
+
       
       // Force chart re-render
       nextTick(() => {
@@ -2192,7 +2200,7 @@ const availableProducts = ref([
   }
 ]);
 
-const suggestedAmounts = ref([50000, 100000, 250000, 500000, 1000000]);
+const suggestedAmounts = ref([500000, 1000000]);
 
 // Dice rolling state
 const activeDice = ref([
@@ -2471,7 +2479,8 @@ const startDisplayStocks = computed(() => {
     return journeyDays.value[0].portfolio.holdings.map(holding => ({
       symbol: holding.symbol,
       price: holding.avgPrice || holding.currentPrice,
-      quantity: holding.quantity
+      quantity: holding.quantity,
+      value: holding.value
     }));
   }
   return [];
@@ -3897,7 +3906,11 @@ const startAutoProgression = () => {
   if (!autoProgressEnabled.value) return;
   
   progressInterval.value = setInterval(() => {
+    console.log("CurrentDayIndex", currentDayIndex);
+    console.log(journeyDays.value.length);
+    console.log(currentDayIndex.value < journeyDays.value.length - 1);
     if (currentDayIndex.value < journeyDays.value.length - 1) {
+
       // Ensure smooth progression without pauses
       currentDayIndex.value++;
       
@@ -3937,62 +3950,60 @@ const generateJourneyData = async () => {
 
   // Calculate days to process based on rolling type
   let daysToProcess;
-  let apiStartDate;
-  
+  const apiStartDate = journeySetup.value.startDate;
+
   if (rollingType.value === 'F') {
     daysToProcess = 1825; // 5 years
-    apiStartDate = journeySetup.value.startDate;
   } else if (rollingType.value === 'E') {
     daysToProcess = Math.max(totalDays.value, 30);
-    apiStartDate = journeySetup.value.startDate;
   } else {
     // For normal dice rolling
     const latestDiceValue = diceRolls.value.length > 0 ? 
       diceRolls.value[diceRolls.value.length - 1] : 5;
     daysToProcess = latestDiceValue * diceMultiplier.value;
-    apiStartDate = journeySetup.value.startDate;
   }
 
-  // Calculate end date based on start date and days to process
-  const startDate = new Date(apiStartDate);
-  const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + daysToProcess - 1);
-  const endDateString = endDate.toISOString().split('T')[0];
   
-  // **FIXED: For first roll, PrevEnddate should be same as Startdate**
-  let prevEndDate;
-  if (isFirstRoll.value || diceRolls.value.length <= 1) {
-    // First roll: PrevEnddate = Startdate
-    prevEndDate = apiStartDate;
-    console.log('🎲 First roll - using start date as PrevEnddate:', prevEndDate);
+// FIXED: PrevEnddate logic based on requirements
+let prevEndDate;
+if (isFirstRoll.value || diceRolls.value.length <= 1 || journeyDays.value.length === 0) {
+  // First roll: PrevEnddate = Startdate (same as configured start date)
+  prevEndDate = apiStartDate;
+  console.log('🎲 First roll - PrevEnddate same as Startdate:', prevEndDate);
+} else {
+  // Subsequent rolls: PrevEnddate = last TransactionDate from previous API response
+  const lastJourneyDay = journeyDays.value[journeyDays.value.length - 1];
+  if (lastJourneyDay && lastJourneyDay.date) {
+    prevEndDate = lastJourneyDay.date;
+    console.log('🎲 Subsequent roll - PrevEnddate from last transaction:', prevEndDate);
   } else {
-    // Subsequent rolls: use the calculated end date
-    prevEndDate = endDateString;
-    console.log('🎲 Subsequent roll - using calculated end date as PrevEnddate:', prevEndDate);
+    // Fallback to start date if no previous data available
+    prevEndDate = apiStartDate;
+    console.log('🎲 Fallback - using start date as PrevEnddate:', prevEndDate);
   }
+}
   
-  // Store the end date for next roll
-  currentJourneyEndDate.value = endDateString;
+const payload = {
+  portfolioId: currentPortfolioId.value,
+  Product: journeySetup.value.selectedProduct,
+  investment: journeySetup.value.amount.toString(),
+  DaysToProceed: daysToProcess,
+  numberOfStocks: journeySetup.value.numberOfStocks.toString(),
+  Startdate: apiStartDate, // Always the original configured start date
+  PrevEnddate: prevEndDate, // First roll: same as Startdate, Subsequent: last TransactionDate
+  rollingType: rollingType.value
+};
 
-  const payload = {
-    portfolioId: currentPortfolioId.value,
-    Product: journeySetup.value.selectedProduct,
-    investment: journeySetup.value.amount.toString(),
-    DaysToProceed: daysToProcess,
-    numberOfStocks: journeySetup.value.numberOfStocks.toString(),
-    Startdate: apiStartDate,
-    PrevEnddate: prevEndDate, // **FIXED: Use correct PrevEnddate logic**
-    rollingType: rollingType.value
-  };
-
-  console.log('🔄 API Payload:', payload);
+console.log('🔄 API Payload with corrected dates:', payload);
+console.log('📅 Startdate (always original):', apiStartDate);
+console.log('📅 PrevEnddate (transaction-based):', prevEndDate);
 
   try {
     const apiData = await fetchSmartVestData(payload);
 
-    if (apiData.isnobuy && apiData.nobuyreason) {
-      console.log('🚫 NOBUY condition detected:', apiData.nobuyreason);
-      showNoBuyPopup(apiData.nobuyreason);
+    if (apiData.IsNoBuyperiod && apiData.NoBuyMessage) {
+      console.log('🚫 NOBUY condition detected:', apiData.NoBuyMessage);
+      showNoBuyPopup(apiData.NoBuyMessage);
       // Still continue with the journey data processing
     }
     // Store raw API response
@@ -4008,31 +4019,27 @@ const generateJourneyData = async () => {
     // Map API data to journey format
     const mappedJourneyDays = mapApiDataToJourney(apiData);
     
-    // For subsequent rolls, append to existing journey
-    if (!isFirstRoll.value && journeyDays.value.length > 0) {
-      // Remove the last day from previous journey to avoid overlap
-      const existingJourney = journeyDays.value.slice(0, -1);
-      
-      // Renumber the new days to continue from where we left off
-      const startDayNumber = existingJourney.length + 1;
-      const renumberedNewDays = mappedJourneyDays.map((day, index) => ({
-        ...day,
-        day: startDayNumber + index
-      }));
-      
-      // Combine existing journey with new days
-      journeyDays.value = [...existingJourney, ...renumberedNewDays];
-      console.log('🔗 Appended new journey days. Total days:', journeyDays.value.length);
-    } else {
-      // First roll - use new data as is
-      journeyDays.value = mappedJourneyDays;
-      console.log('🆕 Set initial journey days:', journeyDays.value.length);
-    }
-    
-    // Reset current day index for new data
-    currentDayIndex.value = 0;
-    selectedDayIndex.value = null;
-    
+    // Always use fresh data from API - no appending
+    journeyDays.value = mappedJourneyDays;
+    console.log('🆕 Set fresh journey days:', journeyDays.value.length);
+
+      // Reset all journey state for fresh start
+      currentDayIndex.value = 0;
+      selectedDayIndex.value = null;
+      showFinalResults.value = false;
+
+      // Reset timeline pagination
+      timelineStartIndex.value = 0;
+
+      // Reset panel pagination
+      startStockPage.value = 0;
+      eventsPage.value = 0;
+      finalStockPage.value = 0;
+
+      // Reset initial events lock
+      isInitialEventsLocked.value = true;
+   
+  
     console.log('✅ Journey data generated successfully', {
       totalDays: journeyDays.value.length,
       startDate: journeyDays.value[0]?.date,
@@ -4129,20 +4136,20 @@ const hideChartTooltip = () => {
 
 // NOBUY Dialog Methods
 const showNoBuyPopup = (reason) => {
-  noBuyReason.value = reason || 'No buy conditions detected'
+  noBuyMessage.value = reason || 'No buy conditions detected'
   showNoBuyDialog.value = true
   
-  // Auto-close after 3 seconds
+  // Auto-close after 8 seconds
   noBuyAutoCloseTimeout.value = setTimeout(() => {
     closeNoBuyDialog()
-  }, 3000)
+  }, 8000)
   
   console.log('🚫 Showing NOBUY popup:', reason)
 }
 
 const closeNoBuyDialog = () => {
   showNoBuyDialog.value = false
-  noBuyReason.value = ''
+  noBuyMessage.value = ''
   
   // Clear auto-close timeout if it exists
   if (noBuyAutoCloseTimeout.value) {
@@ -4634,7 +4641,9 @@ const startNewJourney = () => {
   hasFiveYearTermCompleted.value = false;
   hasFiveYearTermBeenUsed.value = false;
   rollingType.value = 'S';
-  
+
+ isJourneyEnded.value = false;
+
   // Reset timeline and pagination
   timelineStartIndex.value = 0;
   startStockPage.value = 0;
@@ -4673,6 +4682,7 @@ const endJourney = () => {
   showFinalResults.value = true;
   selectedDayIndex.value = null; // Reset selection to show final results
   
+
   // Reset pagination
   eventsPage.value = 0;
   startStockPage.value = 0;
@@ -5710,7 +5720,7 @@ html {
 
 /* Enhanced text colors for better visibility */
 .start-portfolio {
-                                                                                                                                                background: linear-gradient(145deg, rgb(12 142 228 / 98%) 0%, rgba(219, 234, 254, 0.95) 20%, rgb(131 163 202 / 92%) 50%, rgba(147, 197, 253, 0.9) 100%);
+  background: linear-gradient(145deg, rgb(12 142 228 / 98%) 0%, rgba(219, 234, 254, 0.95) 20%, rgb(131 163 202 / 92%) 50%, rgba(147, 197, 253, 0.9) 100%);
   border-color: rgba(147, 197, 253, 0.6);
   color: #1e40af;
   box-shadow: 
@@ -5719,7 +5729,8 @@ html {
 }
 
 .current-snapshot {
-  background: linear-gradient(141deg, rgb(113 140 230 / 98%) 0%, rgba(224, 231, 255, 0.95) 20%, rgb(169 180 224 / 92%) 50%, rgba(165, 180, 252, 0.9) 100%);  border-color: rgba(165, 180, 252, 0.6);
+  background: linear-gradient(141deg, rgb(113 140 230 / 98%) 0%, rgba(224, 231, 255, 0.95) 20%, rgb(169 180 224 / 92%) 50%, rgba(165, 180, 252, 0.9) 100%);
+  border-color: rgba(165, 180, 252, 0.6);
   color: #1e40af;
   box-shadow: 
     0 0.4rem 1.2rem rgba(88, 28, 135, 0.4),
@@ -10469,19 +10480,26 @@ background: rgb(1 7 22 / 20%);
 }
 
 .nobuy-dialog-container {
-  position: relative;
-  background: linear-gradient(145deg, #ffffff 0%, #fef9c3 20%, #fef3c7 50%, #fde68a 80%, #f59e0b 100%);
-  border-radius: 1.5rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);  position: relative;
   padding: 2rem;
   max-width: 450px;
   width: 90%;
-  box-shadow: 
-    0 25px 75px rgba(245, 158, 11, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 3px solid rgba(245, 158, 11, 0.3);
   animation: nobuyDialogSlideIn 0.4s ease-out;
   text-align: center;
   overflow: hidden;
+}
+
+.nobuy-dialog-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+  border-radius: 1.5rem 1.5rem 0 0;
 }
 
 @keyframes nobuyDialogSlideIn {
@@ -10501,31 +10519,36 @@ background: rgb(1 7 22 / 20%);
   justify-content: center;
   margin-bottom: 1.5rem;
   position: relative;
+  flex-shrink: 0;
 }
 
 .nobuy-logo-circle {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #ffffff 0%, #fef9c3 100%);
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%);
   box-shadow: 
-    0 8px 25px rgba(245, 158, 11, 0.3),
-    inset 0 2px 6px rgba(255, 255, 255, 0.8);
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    inset 0 2px 6px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: nobuyLogoFloat 3s infinite ease-in-out;
-  border: 2px solid rgba(245, 158, 11, 0.4);
-  padding: 8px;
+  overflow: visible;
+  animation: nobuyLogoFloat 4s infinite ease-in-out;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  padding: 15px;
 }
 
 .nobuy-logo {
-  width: 60px;
-  height: 60px;
+  width: 88px !important;
+  height: 88px !important;
   object-fit: contain;
-  border-radius: 0;
-  filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));
+  object-position: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
 .nobuy-logo-ring {
@@ -10534,25 +10557,70 @@ background: rgb(1 7 22 / 20%);
   left: -5px;
   right: -5px;
   bottom: -5px;
-  border: 2px solid rgba(245, 158, 11, 0.6);
+  border: 2px solid rgba(59, 130, 246, 0.4);
   border-radius: 50%;
-  animation: nobuyLogoRingPulse 2s infinite ease-in-out;
+  animation: nobuyLogoRingPulse 3s infinite ease-in-out;
+}
+
+.nobuy-logo-ring-outer {
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 50%;
+  animation: nobuyLogoRingPulse 3s infinite ease-in-out 0.5s;
 }
 
 @keyframes nobuyLogoFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-5px) scale(1.03); }
+  0%, 100% { 
+    transform: translateY(0) scale(1);
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.1),
+      inset 0 2px 6px rgba(255, 255, 255, 0.8),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+  }
+  50% { 
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      0 15px 40px rgba(0, 0, 0, 0.15),
+      inset 0 3px 8px rgba(255, 255, 255, 0.9),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.08);
+  }
 }
 
 @keyframes nobuyLogoRingPulse {
   0%, 100% { 
     transform: scale(1);
     opacity: 0.6;
+    border-color: rgba(59, 130, 246, 0.4);
   }
   50% { 
     transform: scale(1.1);
     opacity: 1;
+    border-color: rgba(99, 102, 241, 0.8);
   }
+}
+
+.nobuy-logo-circle:hover {
+  transform: scale(1.05);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.nobuy-logo-circle:hover .nobuy-logo {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
+}
+
+.nobuy-logo-circle:hover .nobuy-logo-ring {
+  border-color: rgba(59, 130, 246, 0.8);
+  animation-duration: 1.5s;
+}
+
+.nobuy-logo-circle:hover .nobuy-logo-ring-outer {
+  border-color: rgba(99, 102, 241, 0.6);
+  animation-duration: 1.5s;
 }
 
 /* Header */
@@ -10575,7 +10643,7 @@ background: rgb(1 7 22 / 20%);
 .nobuy-title {
   font-size: 1.6rem;
   font-weight: 900;
-  color: #92400e;
+  color: #1e40af;
   margin: 0 0 0.5rem 0;
   text-shadow: 0 2px 4px rgba(146, 64, 14, 0.3);
   text-transform: uppercase;
@@ -10599,6 +10667,7 @@ background: rgb(1 7 22 / 20%);
   margin-bottom: 1.5rem;
   border: 2px solid rgba(245, 158, 11, 0.3);
   backdrop-filter: blur(10px);
+  z-index: 1000;
 }
 
 .nobuy-reason-text {
@@ -10702,7 +10771,7 @@ background: rgb(1 7 22 / 20%);
   height: 100%;
   background: linear-gradient(90deg, #f59e0b, #fbbf24);
   border-radius: 2px;
-  animation: autoCloseProgress 3s linear;
+  animation: autoCloseProgress 6s linear;
   transform-origin: left;
 }
 
@@ -10713,32 +10782,32 @@ background: rgb(1 7 22 / 20%);
 
 /* Mobile Responsive */
 @media (max-width: 600px) {
-  .nobuy-dialog-container {
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-  
-  .nobuy-title {
-    font-size: 1.4rem;
-  }
-  
-  .nobuy-icon {
-    font-size: 2rem;
-  }
-  
   .nobuy-logo-circle {
-    width: 60px;
-    height: 60px;
-    padding: 6px;
+    width: 100px;
+    height: 100px;
+    padding: 12px;
   }
   
   .nobuy-logo {
-    width: 45px;
-    height: 45px;
+    width: 71px !important;
+    height: 71px !important;
   }
   
-  .nobuy-reason-text {
-    font-size: 0.9rem;
+  .nobuy-logo-section {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nobuy-logo-circle {
+    width: 80px;
+    height: 80px;
+    padding: 10px;
+  }
+  
+  .nobuy-logo {
+    width: 56px !important;
+    height: 56px !important;
   }
 }
 
@@ -10887,8 +10956,6 @@ background: rgb(1 7 22 / 20%);
     max-height: 200px;
   }
 }
-
-/* Stock Animation Layer - Add this to your existing <style scoped> section */
 
 /* Stock Animation Layer */
 .stock-animation-layer {
@@ -11992,6 +12059,7 @@ background: rgb(1 7 22 / 20%);
   justify-content: center;
   margin-bottom: 1.5rem;
   position: relative;
+  flex-shrink: 0;
 }
 
 .logo-circle {
@@ -12014,11 +12082,11 @@ background: rgb(1 7 22 / 20%);
 }
 
 .educational-logo {
-  width: 88px;
-  height: 88px;
+  width: 88px !important;
+  height: 88px !important;
   object-fit: contain;
   object-position: center;
-  border-radius: 0;
+  border-radius: 50%;
   transition: all 0.3s ease;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
@@ -12031,7 +12099,6 @@ background: rgb(1 7 22 / 20%);
   bottom: -5px;
   border: 2px solid rgba(59, 130, 246, 0.4);
   border-radius: 50%;
-  animation: logoRingPulse 3s infinite ease-in-out;
 }
 
 .logo-ring-outer {
@@ -12042,7 +12109,6 @@ background: rgb(1 7 22 / 20%);
   bottom: -15px;
   border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: 50%;
-  animation: logoRingPulse 3s infinite ease-in-out 0.5s;
 }
 
 /* Logo Animations */
@@ -12305,5 +12371,26 @@ background: rgb(1 7 22 / 20%);
   .tooltip-stock-name {
     font-size: 0.75rem;
   }
+}
+
+/* Journey ended button states */
+.roll-btn-enhanced.journey-ended,
+.roll-dice-btn.journey-ended,
+.journey-control-btn.journey-ended {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  background: linear-gradient(135deg, #94a3b8, #cbd5e1) !important;
+  color: #64748b !important;
+  transform: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.journey-control-btn.journey-ended .control-btn-text {
+  color: #64748b !important;
+}
+
+.journey-control-btn.journey-ended .control-btn-subtitle {
+  color: #94a3b8 !important;
 }
 </style>
